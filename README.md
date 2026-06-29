@@ -2,7 +2,9 @@
 
 Course project for **CSC 226** — generates printable HTML certificates for
 students using configurable templates and certificate types.
-
+<p align="center">
+  <img src="preview.png" alt="Certificate Generator Web UI Preview" width="800px" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);"/>
+</p>
 **Group members:** [Your Names Here]
 
 ---
