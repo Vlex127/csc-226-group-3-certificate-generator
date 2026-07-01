@@ -172,8 +172,33 @@ void CertificateGenerator::loadFromCsv(const std::string& filename) {
     int lineNum = 0;
     int added = 0;
 
-    // Skip header row
+    // Read first line
     if (!std::getline(file, line)) return;
+    lineNum++;
+
+    // Check if first line is a header by trying to parse the third column as a grade
+    auto tryParseFirstLine = [&](const std::string& ln) -> bool {
+        std::stringstream ss(ln);
+        std::string n, c, g;
+        if (!std::getline(ss, n, ',') || !std::getline(ss, c, ',') || !std::getline(ss, g)) return false;
+        auto trim = [](std::string& s) { s.erase(0, s.find_first_not_of(" \t\r\n")); s.erase(s.find_last_not_of(" \t\r\n") + 1); };
+        trim(g);
+        return Student::isValidGrade(g);
+    };
+
+    if (tryParseFirstLine(line)) {
+        // First line is data — process it
+        std::stringstream ss(line);
+        std::string name, course, grade;
+        if (std::getline(ss, name, ',') && std::getline(ss, course, ',') && std::getline(ss, grade)) {
+            auto trim = [](std::string& s) { s.erase(0, s.find_first_not_of(" \t\r\n")); s.erase(s.find_last_not_of(" \t\r\n") + 1); };
+            trim(name); trim(course); trim(grade);
+            if (!name.empty()) {
+                try { addStudent(Student(name, course, grade)); added++; }
+                catch (const ValidationException& e) { std::cerr << "  Warning: Line " << lineNum << ": " << e.what() << " — skipping" << std::endl; }
+            }
+        }
+    }
 
     while (std::getline(file, line)) {
         lineNum++;
@@ -252,7 +277,8 @@ void CertificateGenerator::generateCertificateFor(
     for (char& c : safeName) if (c == ' ') c = '_';
 
     std::string typeStr = certTypeToString(type);
-    std::string filename = "output/" + safeName + "_" + typeStr + ".html";
+    std::string styleStr = templateStyleToString(style);
+    std::string filename = "output/" + safeName + "_" + typeStr + "_" + styleStr + ".html";
     std::filesystem::create_directories("output");
     std::ofstream file(filename);
 
@@ -286,7 +312,8 @@ void CertificateGenerator::generateAllCertificates(
         for (char& c : safeName) if (c == ' ') c = '_';
 
         std::string typeStr = certTypeToString(type);
-        std::string filename = "output/" + safeName + "_" + typeStr + ".html";
+        std::string styleStr = templateStyleToString(style);
+        std::string filename = "output/" + safeName + "_" + typeStr + "_" + styleStr + ".html";
         std::ofstream file(filename);
 
         if (file.is_open()) {

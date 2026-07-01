@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -208,6 +209,20 @@ tr:hover td{background:var(--bg-tertiary)}
 .spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .hidden{display:none!important}
+.csv-help-btn{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--bg-tertiary);color:var(--text-muted);border:1px solid var(--border);font-size:14px;font-weight:700;cursor:pointer;transition:var(--transition);margin-left:4px}
+.csv-help-btn:hover{background:var(--accent-dim);color:var(--accent);border-color:var(--accent)}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:2000;display:flex;align-items:center;justify-content:center;animation:fadeIn 0.2s ease}
+.modal{background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-lg);padding:32px;max-width:520px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.4)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.modal-title{font-size:18px;font-weight:600;color:var(--text-primary)}
+.modal-close{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border:none;background:var(--bg-tertiary);color:var(--text-muted);border-radius:var(--radius);cursor:pointer;font-size:18px;transition:var(--transition)}
+.modal-close:hover{background:var(--bg-elevated);color:var(--text-primary)}
+.modal-body p{font-size:14px;color:var(--text-secondary);margin-bottom:16px;line-height:1.6}
+.modal-body pre{background:var(--bg-primary);border:1px solid var(--border);border-radius:var(--radius);padding:16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text-primary);overflow-x:auto;margin-bottom:16px}
+.modal-body code{font-family:'JetBrains Mono',monospace;font-size:13px;background:var(--bg-tertiary);padding:1px 5px;border-radius:3px;color:var(--accent)}
+.modal-body ul{padding-left:20px;margin-bottom:12px}
+.modal-body li{font-size:14px;color:var(--text-secondary);margin-bottom:6px}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
 .action-btns{display:flex;gap:8px}
 .action-btn{padding:6px 10px;border:none;background:var(--bg-tertiary);color:var(--text-secondary);border-radius:var(--radius-sm);cursor:pointer;transition:var(--transition);display:flex;align-items:center;gap:4px;font-size:12px}
 .action-btn:hover{background:var(--accent);color:white}
@@ -263,7 +278,7 @@ tr:hover td{background:var(--bg-tertiary)}
         <div class="btn-group">
           <button class="btn btn-primary" onclick="switchTab('students')">Add Student</button>
           <button class="btn btn-secondary" onclick="switchTab('generate')">Generate Certificates</button>
-          <button class="btn btn-secondary" onclick="loadCSV()">Import CSV</button>
+          <button class="btn btn-secondary" onclick="loadCSV()">Import CSV</button><button class="csv-help-btn" onclick="openCSVHelp()" title="CSV format help">?</button>
         </div>
       </div>
     </div>
@@ -280,7 +295,7 @@ tr:hover td{background:var(--bg-tertiary)}
         </div>
         <div class="btn-group">
           <button class="btn btn-primary" onclick="addStudent()">Add Student</button>
-          <button class="btn btn-secondary" onclick="loadCSV()">Import from CSV</button>
+          <button class="btn btn-secondary" onclick="loadCSV()">Import from CSV</button><button class="csv-help-btn" onclick="openCSVHelp()" title="CSV format help">?</button>
         </div>
       </div>
       <div class="card">
@@ -363,6 +378,31 @@ tr:hover td{background:var(--bg-tertiary)}
   </footer>
 </div>
 <div class="toast-container" id="toast-container"></div>
+<input type="file" id="csv-file-input" accept=".csv" style="display:none">
+<div id="csv-help-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeCSVHelp()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">CSV File Format</div>
+      <button class="modal-close" onclick="closeCSVHelp()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p>Your CSV file should have three columns: <strong>Name</strong>, <strong>Course</strong>, and <strong>Grade</strong>. An optional header row is allowed but not required.</p>
+      <p><strong>Accepted grade formats:</strong></p>
+      <ul>
+        <li>Letter grades: <code>A</code>, <code>A+</code>, <code>A-</code>, <code>B+</code>, <code>B</code>, <code>B-</code>, <code>C+</code>, <code>C</code>, <code>C-</code>, <code>D+</code>, <code>D</code>, <code>D-</code>, <code>F</code></li>
+        <li>Numeric grades: <code>0</code> to <code>100</code></li>
+      </ul>
+      <p><strong>Example:</strong></p>
+      <pre>Name,Course,Grade
+Alice Johnson,CSC 226,A
+Bob Smith,CSC 226,B+
+Carol Williams,MATH 100,A-
+David Brown,MATH 100,B
+Eve Davis,CSC 226,A</pre>
+      <p style="color:var(--text-muted);font-size:13px">To import, click <strong>Browse CSV</strong> and select a <code>.csv</code> file from your computer. You can also paste CSV content directly into the textarea below.</p>
+    </div>
+  </div>
+</div>
 <script>
 const API="";
 function switchTab(t){document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".tab-content").forEach(x=>x.classList.add("hidden"));document.querySelector("[data-tab="+t+"]").classList.add("active");document.getElementById(t+"-tab").classList.remove("hidden");if(t==="dashboard")loadDashboard();if(t==="students")refreshTable();if(t==="stats")loadStats();if(t==="generate")loadCerts()}
@@ -370,16 +410,19 @@ document.querySelectorAll(".tab").forEach(x=>x.addEventListener("click",()=>swit
 function showMsg(m,t="success"){const c=document.getElementById("toast-container"),toast=document.createElement("div");toast.className="toast "+t;const icons={success:"<svg class=toast-icon viewBox=0 0 24 24 fill=none stroke=currentColor stroke-width=2><polyline points=20 6 9 17 4 12/></svg>",error:"<svg class=toast-icon viewBox=0 0 24 24 fill=none stroke=currentColor stroke-width=2><circle cx=12 cy=12 r=10/><line x1=15 y1=9 x2=9 y2=15/><line x1=9 y1=9 x2=15 y2=15/></svg>",warning:"<svg class=toast-icon viewBox=0 0 24 24 fill=none stroke=currentColor stroke-width=2><path d=M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z/><line x1=12 y1=9 x2=12 y2=13/><line x1=12 y1=17 x2=12.01 y2=17/></svg>"};toast.innerHTML=icons[t]+"<span class=toast-message>"+m+"</span>";c.appendChild(toast);setTimeout(()=>{toast.style.animation="slideIn 0.3s ease reverse";setTimeout(()=>toast.remove(),300)},3000)}
 function getGradeClass(g){const x=g.charAt(0).toUpperCase();if(["A"].includes(x))return"grade-a";if(["B"].includes(x))return"grade-b";if(["C","D"].includes(x))return"grade-c";return"grade-f"}
 async function loadDashboard(){try{const r=await fetch(API+"/stats"),d=await r.json();if(d.status==="ok"){document.getElementById("stat-total").textContent=d.data.total||0;document.getElementById("stat-gpa").textContent=(d.data.avgGpa||0).toFixed(2);document.getElementById("stat-courses").textContent=Object.keys(d.data.courses||{}).length}const cr=await fetch(API+"/certs"),cd=await cr.json();if(cd.status==="ok")document.getElementById("stat-certs").textContent=cd.files.length||0}catch(e){console.error("Dashboard error:",e)}}
-async function refreshTable(){const tb=document.getElementById("students-table");tb.innerHTML="<tr><td colspan=5 class=loading><div class=spinner></div></td></tr>";try{const r=await fetch(API+"/list"),d=await r.json();if(d.status==="ok"&&d.data.length>0){document.getElementById("student-count").textContent=d.data.length+" student"+(d.data.length!==1?"s":"");tb.innerHTML=d.data.map(s=>"<tr><td><strong>"+s.name+"</strong></td><td>"+s.course+"</td><td><span class=`\"grade-badge "+getGradeClass(s.grade)+"`\">"+s.grade+"</span></td><td style=`\"font-family:JetBrains Mono,monospace`\">"+s.gpa.toFixed(2)+"</td><td><div class=action-btns><button class=action-btn onclick=quickGen(`\'"+s.name+"`\')>Generate</button><button class=`\"action-btn danger`\" onclick=removeStudent(`\'"+s.name+"`\')>Remove</button></div></td></tr>").join("")}else tb.innerHTML="<tr><td colspan=5 class=empty-state><h3>No students yet</h3><p>Add students manually or import from CSV.</p></td></tr>"}catch(e){showMsg("Error loading students","error")}}
+async function refreshTable(){const tb=document.getElementById("students-table");tb.innerHTML="<tr><td colspan=5 class=loading><div class=spinner></div></td></tr>";try{const r=await fetch(API+"/list"),d=await r.json();if(d.status==="ok"&&d.data.length>0){document.getElementById("student-count").textContent=d.data.length+" student"+(d.data.length!==1?"s":"");tb.innerHTML=d.data.map(s=>"<tr><td><strong>"+s.name+"</strong></td><td>"+s.course+"</td><td><span class=\"grade-badge "+getGradeClass(s.grade)+"\">"+s.grade+"</span></td><td style=\"font-family:JetBrains Mono,monospace\">"+s.gpa.toFixed(2)+"</td><td><div class=action-btns><button class=\"action-btn\" onclick=\"quickGen('"+s.name.replace(/'/g,"\\'")+"')\">Generate</button><button class=\"action-btn danger\" onclick=\"removeStudent('"+s.name.replace(/'/g,"\\'")+"')\">Remove</button></div></td></tr>").join("")}else tb.innerHTML="<tr><td colspan=5 class=empty-state><h3>No students yet</h3><p>Add students manually or import from CSV.</p></td></tr>"}catch(e){showMsg("Error loading students","error")}}
 async function addStudent(){const n=document.getElementById("student-name").value.trim(),c=document.getElementById("student-course").value.trim(),g=document.getElementById("student-grade").value.trim();if(!n||!c||!g){showMsg("Please fill all fields","warning");return}try{const r=await fetch(API+"/add",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:"name="+encodeURIComponent(n)+"&course="+encodeURIComponent(c)+"&grade="+encodeURIComponent(g)}),d=await r.json();if(d.status==="ok"){showMsg("Added "+n,"success");document.getElementById("student-name").value="";document.getElementById("student-course").value="";document.getElementById("student-grade").value="";refreshTable();loadDashboard()}else showMsg(d.message||"Error adding student","error")}catch(e){showMsg("Error adding student","error")}}
 async function removeStudent(n){if(!confirm("Remove "+n+"?"))return;try{const r=await fetch(API+"/remove",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:"name="+encodeURIComponent(n)}),d=await r.json();if(d.status==="ok"){showMsg("Removed "+n,"success");refreshTable();loadDashboard()}else showMsg(d.message||"Error removing student","error")}catch(e){showMsg("Error removing student","error")}}
-async function searchStudents(){const q=document.getElementById("search-query").value.trim(),t=document.getElementById("search-type").value;if(!q){refreshTable();return}const tb=document.getElementById("students-table");tb.innerHTML="<tr><td colspan=5 class=loading><div class=spinner></div></td></tr>";try{const r=await fetch(API+"/search?q="+encodeURIComponent(q)+"&type="+t),d=await r.json();if(d.status==="ok"&&d.data.length>0){tb.innerHTML=d.data.map(s=>"<tr><td><strong>"+s.name+"</strong></td><td>"+s.course+"</td><td><span class=`\"grade-badge "+getGradeClass(s.grade)+"`\">"+s.grade+"</span></td><td style=`\"font-family:JetBrains Mono,monospace`\">"+s.gpa.toFixed(2)+"</td><td><div class=action-btns><button class=action-btn onclick=quickGen(`\'"+s.name+"`\')>Generate</button><button class=`\"action-btn danger`\" onclick=removeStudent(`\'"+s.name+"`\')>Remove</button></div></td></tr>").join("")}else tb.innerHTML="<tr><td colspan=5 class=empty-state><h3>No results found</h3><p>Try a different search term.</p></td></tr>"}catch(e){showMsg("Search error","error")}}
+async function searchStudents(){const q=document.getElementById("search-query").value.trim(),t=document.getElementById("search-type").value;if(!q){refreshTable();return}const tb=document.getElementById("students-table");tb.innerHTML="<tr><td colspan=5 class=loading><div class=spinner></div></td></tr>";try{const r=await fetch(API+"/search?q="+encodeURIComponent(q)+"&type="+t),d=await r.json();if(d.status==="ok"&&d.data.length>0){tb.innerHTML=d.data.map(s=>"<tr><td><strong>"+s.name+"</strong></td><td>"+s.course+"</td><td><span class=\"grade-badge "+getGradeClass(s.grade)+"\">"+s.grade+"</span></td><td style=\"font-family:JetBrains Mono,monospace\">"+s.gpa.toFixed(2)+"</td><td><div class=action-btns><button class=\"action-btn\" onclick=\"quickGen('"+s.name.replace(/'/g,"\\'")+"')\">Generate</button><button class=\"action-btn danger\" onclick=\"removeStudent('"+s.name.replace(/'/g,"\\'")+"')\">Remove</button></div></td></tr>").join("")}else tb.innerHTML="<tr><td colspan=5 class=empty-state><h3>No results found</h3><p>Try a different search term.</p></td></tr>"}catch(e){showMsg("Search error","error")}}
 async function generateCert(){const n=document.getElementById("gen-name").value.trim(),t=document.getElementById("gen-type").value,s=document.getElementById("gen-style").value;const body="certType="+t+"&style="+s+(n?"&name="+encodeURIComponent(n):"");try{const r=await fetch(API+"/generate",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body}),d=await r.json();if(d.status==="ok"){showMsg("Certificate generated!","success");loadCerts();loadDashboard()}else showMsg(d.message||"Error generating","error")}catch(e){showMsg("Error generating certificate","error")}}
 async function generateAllCerts(){const t=document.getElementById("gen-type").value,s=document.getElementById("gen-style").value;try{const r=await fetch(API+"/generate",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:"certType="+t+"&style="+s}),d=await r.json();if(d.status==="ok"){showMsg("Certificates generated for all!","success");loadCerts();loadDashboard()}else showMsg(d.message||"Error","error")}catch(e){showMsg("Error","error")}}
 function quickGen(n){document.getElementById("gen-name").value=n;switchTab("generate")}
-async function loadCerts(){const tb=document.getElementById("certs-table");try{const r=await fetch(API+"/certs"),d=await r.json();if(d.status==="ok"&&d.files.length>0){tb.innerHTML=d.files.map(f=>"<tr><td style=`\"font-family:JetBrains Mono,monospace;font-size:13px`\">"+f+"</td><td>"+(f.includes("Excellence")?"Excellence":f.includes("Completion")?"Completion":"Participation")+"</td><td><button class=action-btn onclick=`\"window.open(`\'"+f+"`\',`\'_blank`\')`\">View</button></td></tr>").join("")}else tb.innerHTML="<tr><td colspan=3 class=empty-state><h3>No certificates generated</h3><p>Generated certificates will appear here.</p></td></tr>"}catch(e){showMsg("Error loading certificates","error")}}
+async function loadCerts(){const tb=document.getElementById("certs-table");try{const r=await fetch(API+"/certs"),d=await r.json();if(d.status==="ok"&&d.files.length>0){tb.innerHTML=d.files.map(f=>"<tr><td style=\"font-family:JetBrains Mono,monospace;font-size:13px\">"+f+"</td><td>"+(f.includes("Excellence")?"Excellence":f.includes("Completion")?"Completion":"Participation")+"</td><td><button class=\"action-btn\" onclick=\"window.open('output/"+f+"','_blank')\">View</button></td></tr>").join("")}else tb.innerHTML="<tr><td colspan=3 class=empty-state><h3>No certificates generated</h3><p>Generated certificates will appear here.</p></td></tr>"}catch(e){showMsg("Error loading certificates","error")}}
 async function loadStats(){try{const r=await fetch(API+"/stats"),d=await r.json();if(d.status==="ok"){document.getElementById("stats-total").textContent=d.data.total||0;document.getElementById("stats-gpa").textContent=(d.data.avgGpa||0).toFixed(2);const courses=d.data.courses||{},grades=d.data.grades||{};document.getElementById("course-stats").innerHTML=Object.keys(courses).length>0?Object.entries(courses).map(([c,n])=>"<div style=display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)><span>"+c+"</span><span style=color:var(--accent)>"+n+" student"+(n!==1?"s":"")+"</span></div>").join(""):"<p>No data</p>";document.getElementById("grade-stats").innerHTML=Object.keys(grades).length>0?Object.entries(grades).map(([g,n])=>"<div style=display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)><span><span class=`\"grade-badge "+getGradeClass(g)+"`\">"+g+"</span></span><span style=color:var(--success)>"+n+"</span></div>").join(""):"<p>No data</p>"}}catch(e){showMsg("Error loading statistics","error")}}
-function loadCSV(){const f=prompt("Enter CSV filename:","students.csv");if(!f)return;fetch(API+"/load",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:"filename="+encodeURIComponent(f)}).then(r=>r.json()).then(d=>{if(d.status==="ok"){showMsg("CSV loaded!","success");refreshTable();loadDashboard()}else showMsg(d.message||"Error loading CSV","error")}).catch(()=>showMsg("Error loading CSV","error"))}
+function loadCSV(){document.getElementById("csv-file-input").click()}
+document.getElementById("csv-file-input").addEventListener("change",function(){const file=this.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){const content=e.target.result;fetch(API+"/loadcontent",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:"content="+encodeURIComponent(content)}).then(r=>r.json()).then(d=>{if(d.status==="ok"){showMsg("Loaded from "+file.name,"success");refreshTable();loadDashboard()}else showMsg(d.message||"Error loading CSV","error")}).catch(()=>showMsg("Error loading CSV","error"))};reader.readAsText(file);this.value=""})
+function openCSVHelp(){document.getElementById("csv-help-modal").classList.remove("hidden")}
+function closeCSVHelp(){document.getElementById("csv-help-modal").classList.add("hidden")}
 function setTheme(t){document.documentElement.dataset.theme=t;localStorage.setItem("theme",t);document.querySelectorAll(".theme-btn").forEach(b=>b.classList.toggle("active",b.dataset.theme===t))}
 function initTheme(){const s=localStorage.getItem("theme")||"system";const t=s==="system"?(window.matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light"):s;document.documentElement.dataset.theme=t;document.querySelectorAll(".theme-btn").forEach(b=>b.classList.toggle("active",b.dataset.theme===s))}
 window.matchMedia("(prefers-color-scheme:dark)").addEventListener("change",()=>{const s=localStorage.getItem("theme")||"system";if(s==="system"){const t=window.matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light";document.documentElement.dataset.theme=t}})
@@ -522,6 +565,22 @@ static void handleClient(SOCKET client, CertificateGenerator& gen) {
             json += "}}}";
             sendJSON(200, json);
         }
+        // GET /certs — list generated certificate files in output/
+        else if (method == "GET" && path == "/certs") {
+            std::string json = R"({"status":"ok","files":[)";
+            bool first = true;
+            if (std::filesystem::exists("output")) {
+                for (const auto& entry : std::filesystem::directory_iterator("output")) {
+                    if (entry.path().extension() == ".html") {
+                        if (!first) json += ",";
+                        json += "\"" + jsonEscape(entry.path().filename().string()) + "\"";
+                        first = false;
+                    }
+                }
+            }
+            json += "]}";
+            sendJSON(200, json);
+        }
         // POST /add — add a student from form fields
         else if (method == "POST" && path == "/add") {
             auto fields = parseForm(body);
@@ -546,6 +605,26 @@ static void handleClient(SOCKET client, CertificateGenerator& gen) {
                 sendJSON(200, R"({"status":"ok","message":"Loaded from )" + jsonEscape(fields["filename"]) + "\"}");
             } catch (const FileException& e) {
                 sendJSON(200, R"({"status":"error","message":")" + jsonEscape(e.what()) + "\"}");
+            }
+        }
+        // POST /loadcontent — load CSV from uploaded content (file picker or paste)
+        else if (method == "POST" && path == "/loadcontent") {
+            auto fields = parseForm(body);
+            if (fields.count("content") && !fields["content"].empty()) {
+                std::string csvPath = ".tmp_upload.csv";
+                std::ofstream tmp(csvPath);
+                tmp << fields["content"];
+                tmp.close();
+                try {
+                    gen.loadFromCsv(csvPath);
+                    std::remove(csvPath.c_str());
+                    sendJSON(200, R"({"status":"ok","message":"CSV loaded from upload"})");
+                } catch (const std::exception& e) {
+                    std::remove(csvPath.c_str());
+                    sendJSON(200, R"({"status":"error","message":")" + jsonEscape(e.what()) + "\"}");
+                }
+            } else {
+                sendJSON(200, R"({"status":"error","message":"No CSV content provided"})");
             }
         }
         // POST /generate — generate certificate(s) with specified type and style
@@ -577,13 +656,25 @@ static void handleClient(SOCKET client, CertificateGenerator& gen) {
         }
         // GET /lasu.png — serve the LASU logo image
         else if (method == "GET" && path == "/lasu.png") {
-            std::ifstream file("lasu.png", std::ios::binary);
+            std::ifstream file("assets/lasu.png", std::ios::binary);
             if (file) {
                 std::ostringstream buf;
                 buf << file.rdbuf();
                 sendResponse(200, "image/png", buf.str());
             } else {
                 sendJSON(404, R"({"status":"error","message":"Logo not found"})");
+            }
+        }
+        // GET /output/* — serve generated certificate files
+        else if (method == "GET" && path.find("/output/") == 0) {
+            std::string filepath = path.substr(1);
+            std::ifstream file(filepath);
+            if (file) {
+                std::ostringstream buf;
+                buf << file.rdbuf();
+                sendResponse(200, "text/html", buf.str());
+            } else {
+                sendJSON(404, R"({"status":"error","message":"File not found"})");
             }
         }
         // Catch-all: 404

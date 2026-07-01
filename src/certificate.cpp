@@ -24,6 +24,16 @@ std::string certTypeToString(CertType type) {
     }
 }
 
+// Converts the TemplateStyle enum to a human-readable string
+std::string templateStyleToString(TemplateStyle style) {
+    switch (style) {
+        case TemplateStyle::Formal:       return "Formal";
+        case TemplateStyle::Modern:       return "Modern";
+        case TemplateStyle::Minimalist:   return "Minimalist";
+        default: return "Formal";
+    }
+}
+
 // ─── Factory: Template ──────────────────────────────────────────────────────
 // Returns the correct CertificateTemplate subclass based on the enum
 std::unique_ptr<CertificateTemplate> makeTemplate(TemplateStyle style) {
@@ -88,7 +98,7 @@ std::string FormalTemplate::body(const Student& student, const std::string& cert
       << "  <div class=\"reason\">for successfully completing the course <br><strong>"
       << student.getCourse() << "</strong><br> with a grade of <strong>"
       << student.getGrade() << "</strong>.</div>\n"
-      << "  <img class=\"lasu-logo\" src=\"../lasu.png\" alt=\"LASU\">\n"
+      << "  <img class=\"lasu-logo\" src=\"../assets/lasu.png\" alt=\"LASU\">\n"
       << "  <div class=\"lasu-seal\">Lagos State University &mdash; Department of Computer Science</div>\n"
       << "  <div class=\"footer\">\n"
       << "    <div>Date: " << date << "</div>\n"
@@ -152,7 +162,7 @@ std::string ModernTemplate::body(const Student& student, const std::string& cert
       << "    <strong style=\"font-size: 22px; color: #667eea;\">" << student.getCourse() << "</strong><br><br>\n"
       << "    Grade Achieved: <strong>" << student.getGrade() << "</strong>\n"
       << "  </div>\n"
-      << "  <img class=\"lasu-logo\" src=\"../lasu.png\" alt=\"LASU\">\n"
+      << "  <img class=\"lasu-logo\" src=\"../assets/lasu.png\" alt=\"LASU\">\n"
       << "  <div class=\"lasu-seal\">Lagos State University &mdash; Department of Computer Science</div>\n"
       << "  <div class=\"footer\">\n"
       << "    <div>" << date << "</div>\n"
@@ -213,7 +223,7 @@ std::string MinimalistTemplate::body(const Student& student, const std::string& 
       << "Course: <strong>" << student.getCourse() << "</strong><br>\n"
       << "Grade:  <strong>" << student.getGrade() << "</strong>\n"
       << "  </div>\n"
-      << "  <img class=\"lasu-logo\" src=\"../lasu.png\" alt=\"LASU\">\n"
+      << "  <img class=\"lasu-logo\" src=\"../assets/lasu.png\" alt=\"LASU\">\n"
       << "  <div class=\"lasu-seal\">Lagos State University &mdash; Department of Computer Science</div>\n"
       << "  <div class=\"footer\">" << date << " &mdash; Department Coordinator</div>\n"
       << "</div>\n";

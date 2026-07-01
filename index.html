@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LASU Certificate Generator — Usage Guide</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #1a1817;
+      --bg-card: #2a2522;
+      --bg-code: #1e1c1a;
+      --border: #3a3532;
+      --text: #faf9f5;
+      --text-muted: #b0aea5;
+      --text-dim: #6a6a65;
+      --accent: #d97757;
+      --accent-dim: rgba(217,119,87,0.15);
+      --blue: #6a9bcc;
+      --green: #788c5d;
+      --green-dim: rgba(120,140,93,0.15);
+      --radius: 8px;
+      --radius-lg: 12px;
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+    .container{max-width:960px;margin:0 auto;padding:60px 32px}
+    h1{
+      font-size:40px;font-weight:700;color:var(--accent);
+      letter-spacing:-0.03em;margin-bottom:4px;
+    }
+    .subtitle{color:var(--text-muted);font-size:16px;margin-bottom:48px}
+    h2{
+      font-size:28px;font-weight:600;color:var(--text);
+      margin-top:56px;margin-bottom:16px;
+      display:flex;align-items:center;gap:12px;
+    }
+    h2 .step{background:var(--accent);color:white;font-size:16px;font-weight:700;
+      width:36px;height:36px;border-radius:50%;display:flex;align-items:center;
+      justify-content:center;flex-shrink:0}
+    h3{font-size:18px;color:var(--accent);margin-top:24px;margin-bottom:8px}
+    p{color:var(--text-muted);margin-bottom:16px;font-size:15px}
+    p strong{color:var(--text)}
+    .card{
+      background:var(--bg-card);border:1px solid var(--border);
+      border-radius:var(--radius-lg);padding:24px;margin-bottom:24px;
+    }
+    .card-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:12px}
+    .screenshot{
+      border:1px solid var(--border);border-radius:var(--radius);
+      background:var(--bg-code);overflow:hidden;margin-bottom:16px;
+    }
+    .screenshot img{width:100%;height:auto;display:block;border-radius:var(--radius)}
+    .screenshot-caption{padding:10px 16px;font-size:12px;color:var(--text-muted);text-align:center;border-top:1px solid var(--border)}
+    code{
+      font-family:'JetBrains Mono',monospace;font-size:13px;
+      background:var(--bg-code);padding:2px 6px;border-radius:4px;color:var(--accent);
+    }
+    pre{
+      background:var(--bg-code);border:1px solid var(--border);
+      border-radius:var(--radius);padding:16px 20px;overflow-x:auto;margin-bottom:16px;
+    }
+    pre code{background:none;padding:0;color:var(--text);font-size:13px;line-height:1.6}
+    .tip{
+      background:var(--accent-dim);border:1px solid var(--accent);
+      border-radius:var(--radius);padding:16px 20px;margin-bottom:16px;
+      display:flex;gap:12px;align-items:flex-start;
+    }
+    .tip-icon{color:var(--accent);font-size:18px;font-weight:700;flex-shrink:0}
+    .tip p{color:var(--text-muted);font-size:13px;margin:0}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+    @media(max-width:640px){.grid{grid-template-columns:1fr}}
+    ul{padding-left:20px;margin-bottom:16px}
+    li{color:var(--text-muted);font-size:14px;margin-bottom:6px}
+    li strong{color:var(--text)}
+    .footer{
+      text-align:center;padding:40px 0 0;border-top:1px solid var(--border);
+      margin-top:64px;color:var(--text-dim);font-size:13px;
+    }
+    .tag{
+      display:inline-block;padding:3px 10px;border-radius:12px;
+      font-size:11px;font-weight:600;border:1px solid;
+    }
+    .tag-accent{color:var(--accent);border-color:var(--accent)}
+    .tag-blue{color:var(--blue);border-color:var(--blue)}
+    .tag-green{color:var(--green);border-color:var(--green)}
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <h1>LASU Certificate Generator</h1>
+  <p class="subtitle">Usage Guide — Step-by-step instructions for building, running, and using the application</p>
+
+  <p style="margin-bottom:32px">
+    <span class="tag tag-accent">Build</span>
+    <span class="tag tag-blue">Run</span>
+    <span class="tag tag-green">Use</span>
+    <span class="tag tag-accent">Generate</span>
+  </p>
+
+  <!-- STEP 1 -->
+  <h2><span class="step">1</span> Build the Application</h2>
+  <p>Open a terminal in the project directory and compile using <strong>g++</strong> with C++17 standard and the Winsock2 library:</p>
+  <pre><code>g++ -std=c++17 -I include -o certificate_generator.exe main.cpp src/*.cpp -lws2_32</code></pre>
+  <p>This produces <code>certificate_generator.exe</code> in the current directory. The <code>-I include</code> flag tells the compiler where to find header files, and <code>-lws2_32</code> links the Windows Socket library.</p>
+
+  <div class="tip">
+    <div class="tip-icon">&#9432;</div>
+    <p><strong>Alternative:</strong> If you have CMake installed, run <code>cmake -B build && cmake --build build</code> to use the provided <code>CMakeLists.txt</code>.</p>
+  </div>
+
+  <!-- STEP 2 -->
+  <h2><span class="step">2</span> Run the Server</h2>
+  <p>Launch the application from the terminal:</p>
+  <pre><code>./certificate_generator</code></pre>
+  <p>You should see output like this:</p>
+  <pre><code>  ========================================
+   LASU Certificate Generator v2.0
+   Lagos State University
+   Department of Computer Science
+   CSC 226 — Group 6
+  ========================================
+
+  ========================================
+   Certificate Generator Web UI
+  ========================================
+   Server running at: http://localhost:8080
+   Opening in your browser...
+  ========================================
+   Press Ctrl+C to stop.</code></pre>
+  <p>The application will automatically open your default browser to <code>http://localhost:8080</code>. If it doesn't, manually open that URL.</p>
+
+  <div class="screenshot">
+    <img src="assets/server_started.png" alt="Server terminal output">
+    <div class="screenshot-caption">Terminal showing the server starting on http://localhost:8080</div>
+  </div>
+
+  <!-- STEP 3 -->
+  <h2><span class="step">3</span> Dashboard Overview</h2>
+  <p>When you first open the browser, you'll see the <strong>Dashboard</strong>. It shows four stat cards:</p>
+  <ul>
+    <li><strong>Total Students</strong> — how many students are currently loaded</li>
+    <li><strong>Average GPA</strong> — the mean GPA across all students</li>
+    <li><strong>Certificates Generated</strong> — count of certificate files created</li>
+    <li><strong>Active Courses</strong> — number of unique courses</li>
+  </ul>
+  <p>The dashboard also has quick action buttons: <strong>Add Student</strong>, <strong>Generate Certificates</strong>, and <strong>Import CSV</strong>.</p>
+
+  <div class="screenshot">
+    <img src="assets/dashboard_overview.png" alt="Dashboard overview">
+    <div class="screenshot-caption">Dashboard with stat cards — Total Students, Average GPA, Certificates, and Courses</div>
+  </div>
+
+  <!-- STEP 4 -->
+  <h2><span class="step">4</span> Load Sample Data from CSV</h2>
+  <p>The project includes a sample file <code>students.csv</code> with 10 student records. To load it:</p>
+  <ol style="color:var(--text-muted);font-size:14px;margin-bottom:16px;padding-left:20px">
+    <li style="margin-bottom:8px">Click the <strong>Students</strong> tab</li>
+    <li style="margin-bottom:8px">Click the <strong>Import from CSV</strong> button — a file picker will open</li>
+    <li style="margin-bottom:8px">Select <code>students.csv</code> from the project folder and click Open</li>
+    <li style="margin-bottom:8px">You'll see a success notification and the table will populate</li>
+  </ol>
+  <p>You can also click the <strong>?</strong> button next to Import to see the required CSV format.</p>
+
+  <div class="screenshot">
+    <img src="assets/csv_import.png" alt="Students tab with imported data">
+    <div class="screenshot-caption">Students tab showing the populated table with grade badges</div>
+  </div>
+
+  <!-- STEP 5 -->
+  <h2><span class="step">5</span> Add a Student Manually</h2>
+  <p>You can add students one at a time using the add form in the <strong>Students</strong> tab:</p>
+  <ol style="color:var(--text-muted);font-size:14px;margin-bottom:16px;padding-left:20px">
+    <li style="margin-bottom:8px">Enter the student's <strong>name</strong> (e.g., "Test Student")</li>
+    <li style="margin-bottom:8px">Enter the <strong>course</strong> (e.g., "CSC 226")</li>
+    <li style="margin-bottom:8px">Enter a valid <strong>grade</strong> — letter grades (<code>A</code>, <code>B+</code>, <code>A-</code>) or numeric (0-100)</li>
+    <li style="margin-bottom:8px">Click <strong>Add Student</strong></li>
+  </ol>
+  <p>Invalid grades (e.g., "Z" or "-5") will be rejected with a validation error notification.</p>
+
+  <div class="screenshot">
+    <img src="assets/text_filling.png" alt="Add student form filled">
+    <div class="screenshot-caption">Add Student form with name, course, and grade fields filled in</div>
+  </div>
+
+  <!-- STEP 6 -->
+  <h2><span class="step">6</span> Search and Sort Students</h2>
+  <p>Use the <strong>Search</strong> field in the Students tab to find specific students by name or course. The search is case-insensitive and matches partial text.</p>
+  <p>Click the <strong>Remove</strong> button next to any student to delete them from the database. Sorting is available by name, grade (ascending/descending), and course.</p>
+
+  <div class="screenshot">
+    <img src="assets/search_filter.png" alt="Search results filtered">
+    <div class="screenshot-caption">Search results filtered by course name — case-insensitive partial matching</div>
+  </div>
+
+  <!-- STEP 7 -->
+  <h2><span class="step">7</span> Generate Certificates</h2>
+  <p>Go to the <strong>Generate</strong> tab. You'll see three dropdowns:</p>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-title">Certificate Type</div>
+      <ul style="margin:0;padding-left:16px">
+        <li><strong>Excellence</strong> — for outstanding academic achievement</li>
+        <li><strong>Completion</strong> — for successful course completion</li>
+        <li><strong>Participation</strong> — for active participation</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">Template Style</div>
+      <ul style="margin:0;padding-left:16px">
+        <li><strong>Formal</strong> — serif font, double border, traditional</li>
+        <li><strong>Modern</strong> — gradient background, rounded corners</li>
+        <li><strong>Minimalist</strong> — monospace font, clean &amp; simple</li>
+      </ul>
+    </div>
+  </div>
+
+  <p>To generate:</p>
+  <ol style="color:var(--text-muted);font-size:14px;margin-bottom:16px;padding-left:20px">
+    <li style="margin-bottom:8px">Select a <strong>Certificate Type</strong> and <strong>Template Style</strong></li>
+    <li style="margin-bottom:8px">Leave the <strong>Student Name</strong> field empty to generate for ALL students, or enter a specific name</li>
+    <li style="margin-bottom:8px">Click <strong>Generate Certificate</strong> or <strong>Generate for All Students</strong></li>
+    <li style="margin-bottom:8px">Generated files appear in the list below — click <strong>View</strong> to open in a new tab</li>
+  </ol>
+
+  <div class="screenshot">
+    <img src="assets/generate_cert.png" alt="Generate certificates tab">
+    <div class="screenshot-caption">Generate tab with certificate type and template style selected, certificates listed below</div>
+  </div>
+
+  <!-- STEP 8 -->
+  <h2><span class="step">8</span> View Certificate Output</h2>
+  <p>Each generated certificate is an HTML file saved to the <code>output/</code> directory. The filename format is <code>StudentName_CertificateType_Style.html</code> (spaces replaced with underscores).</p>
+  <p>Click any filename in the certificates list to open it in a new browser tab. From there, press <strong>Ctrl+P</strong> to print it as a physical certificate.</p>
+
+  <div class="grid">
+    <div class="screenshot" style="margin:0">
+      <img src="assets/cert_formal.png" alt="Formal certificate template">
+      <div class="screenshot-caption">Formal Template — serif font, double border, traditional design</div>
+    </div>
+    <div class="screenshot" style="margin:0">
+      <img src="assets/cert_morden.png" alt="Modern certificate template">
+      <div class="screenshot-caption">Modern Template — gradient background, rounded corners</div>
+    </div>
+  </div>
+
+  <div class="screenshot">
+    <img src="assets/cert_minimalist.png" alt="Minimalist certificate template">
+    <div class="screenshot-caption">Minimalist Template — monospace font, clean simple design</div>
+  </div>
+
+  <!-- STEP 9 -->
+  <h2><span class="step">9</span> View Statistics</h2>
+  <p>The <strong>Statistics</strong> tab provides two breakdowns:</p>
+  <ul>
+    <li><strong>Course Distribution</strong> — how many students are enrolled in each course</li>
+    <li><strong>Grade Distribution</strong> — how many students achieved each grade</li>
+  </ul>
+  <p>Statistics update automatically whenever you add or remove students. The top stat cards show the total student count and average GPA.</p>
+
+  <div class="screenshot">
+    <img src="assets/statstics.png" alt="Statistics tab">
+    <div class="screenshot-caption">Statistics tab showing course distribution and grade distribution</div>
+  </div>
+
+  <!-- STEP 10 -->
+  <h2><span class="step">10</span> Theme Toggle</h2>
+  <p>Click the sun/moon/monitor icons in the top-right corner to switch between <strong>Light</strong>, <strong>Dark</strong>, and <strong>System</strong> themes. Your preference is saved in the browser's local storage.</p>
+
+  <div class="screenshot">
+    <img src="assets/theme.png" alt="Light mode theme">
+    <div class="screenshot-caption">Light mode theme — click the sun icon in the header</div>
+  </div>
+
+  <!-- STOPPING -->
+  <h2>Stopping the Server</h2>
+  <p>When you're done, go back to the terminal and press <strong>Ctrl+C</strong>. The server will shut down gracefully.</p>
+
+  <!-- TROUBLESHOOTING -->
+  <h2>Troubleshooting</h2>
+  <div class="card">
+    <p><strong>Port 8080 already in use?</strong> Change the port in <code>main.cpp:49</code> from 8080 to another number (e.g., 3000) and rebuild.</p>
+    <p><strong>Compiler not found?</strong> Install MinGW-w64 for Windows from <a href="#" style="color:var(--accent)">winlibs.com</a>. Ensure <code>g++</code> is in your PATH.</p>
+    <p><strong>"Winsock not found"?</strong> Make sure you're on Windows and have the Windows SDK installed. This application only runs on Windows.</p>
+    <p><strong>No output directory?</strong> The application creates <code>output/</code> automatically when generating certificates.</p>
+  </div>
+
+  <div class="footer">
+    <p>LASU Certificate Generator 2026 &mdash; Lagos State University, Faculty of Computing</p>
+    <p>Department of Computer Science &mdash; CSC 226 Group Project</p>
+    <p style="margin-top:12px">
+      <span class="tag tag-accent">Strategy</span>
+      <span class="tag tag-blue">Template Method</span>
+      <span class="tag tag-green">Factory</span>
+      <span class="tag tag-accent">Inheritance</span>
+      <span class="tag tag-blue">Polymorphism</span>
+      <span class="tag tag-green">RAII</span>
+    </p>
+  </div>
+
+</div>
+</body>
+</html>

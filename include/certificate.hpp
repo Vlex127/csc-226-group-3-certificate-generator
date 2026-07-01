@@ -8,6 +8,7 @@ enum class CertType { Excellence, Completion, Participation };
 enum class TemplateStyle { Formal, Modern, Minimalist };
 
 std::string certTypeToString(CertType type);
+std::string templateStyleToString(TemplateStyle style);
 
 // ─── Strategy Pattern ──────────────────────────────────────────────────────
 // CertificateTemplate is the Strategy interface. Each concrete subclass
