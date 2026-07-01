@@ -1,5 +1,6 @@
 #pragma once
 #include <map>
+#include <mutex>
 #include <vector>
 #include <string>
 #include "person.hpp"
@@ -9,8 +10,9 @@
 // Uses std::map (keyed by student name) for O(log n) lookups.
 // Provides CRUD operations, search, sort, statistics, and batch generation.
 class CertificateGenerator {
-    // Map stores students keyed by name — enables fast lookup by name
+    // Map stores students keyed by lowercased name — enables O(log n) case-insensitive lookup
     std::map<std::string, Student> students_;
+    mutable std::mutex mutex_; // guards students_ for thread safety
 
 public:
     // ── CRUD ──

@@ -1,7 +1,8 @@
-#include "generator.hpp"
+﻿#include "generator.hpp"
 #include "exceptions.hpp"
 #include <algorithm>
 #include <cctype>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -13,7 +14,7 @@ static std::string toLower(std::string s) {
     return s;
 }
 
-// ── CRUD ─────────────────────────────────────────────────────────────────
+// ─── CRUD ────────────────────────────────────────────────────────────────────
 
 void CertificateGenerator::addStudent(const Student& s) {
     if (s.getName().empty()) {
@@ -25,43 +26,36 @@ void CertificateGenerator::addStudent(const Student& s) {
     if (!Student::isValidGrade(s.getGrade())) {
         throw ValidationException("Invalid grade: \"" + s.getGrade() + "\". Use letter grade (A, B+, etc.) or number 0-100.");
     }
-    // Map keyed by original name for display — lookup uses case-insensitive search
-    students_[s.getName()] = s;
+    std::lock_guard<std::mutex> lock(mutex_);
+    students_[toLower(s.getName())] = s;
 }
 
-// Case-insensitive remove — iterates map comparing lowered names
 bool CertificateGenerator::removeStudent(const std::string& name) {
-    std::string lower = toLower(name);
-    auto it = std::find_if(students_.begin(), students_.end(),
-        [&](const auto& pair) { return toLower(pair.first) == lower; });
-    if (it == students_.end()) return false;
-    students_.erase(it);
-    return true;
+    std::lock_guard<std::mutex> lock(mutex_);
+    return students_.erase(toLower(name)) > 0;
 }
 
-// Case-insensitive find by exact name — linear scan since map key is original case
 Student* CertificateGenerator::findStudent(const std::string& name) {
-    std::string lower = toLower(name);
-    auto it = std::find_if(students_.begin(), students_.end(),
-        [&](const auto& pair) { return toLower(pair.first) == lower; });
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = students_.find(toLower(name));
     return (it != students_.end()) ? &it->second : nullptr;
 }
 
 const Student* CertificateGenerator::findStudent(const std::string& name) const {
-    std::string lower = toLower(name);
-    auto it = std::find_if(students_.begin(), students_.end(),
-        [&](const auto& pair) { return toLower(pair.first) == lower; });
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = students_.find(toLower(name));
     return (it != students_.end()) ? &it->second : nullptr;
 }
 
-// ── Search ───────────────────────────────────────────────────────────────
+// ─── Search ──────────────────────────────────────────────────────────────────
 
 // Finds all students whose name contains the given fragment (case-insensitive)
 std::vector<Student> CertificateGenerator::searchByName(const std::string& partial) const {
+    std::lock_guard<std::mutex> lock(mutex_);
     std::string lowerPartial = toLower(partial);
     std::vector<Student> results;
     for (const auto& [name, student] : students_) {
-        if (toLower(name).find(lowerPartial) != std::string::npos) {
+        if (name.find(lowerPartial) != std::string::npos) {
             results.push_back(student);
         }
     }
@@ -70,6 +64,7 @@ std::vector<Student> CertificateGenerator::searchByName(const std::string& parti
 
 // Finds all students enrolled in a course matching the fragment
 std::vector<Student> CertificateGenerator::searchByCourse(const std::string& course) const {
+    std::lock_guard<std::mutex> lock(mutex_);
     std::vector<Student> results;
     for (const auto& [name, student] : students_) {
         if (student.getCourse().find(course) != std::string::npos) {
@@ -81,6 +76,7 @@ std::vector<Student> CertificateGenerator::searchByCourse(const std::string& cou
 
 // Filters students whose GPA points fall within [min, max]
 std::vector<Student> CertificateGenerator::searchByGradeRange(double min, double max) const {
+    std::lock_guard<std::mutex> lock(mutex_);
     std::vector<Student> results;
     for (const auto& [name, student] : students_) {
         double pts = student.gradeToPoints();
@@ -91,9 +87,10 @@ std::vector<Student> CertificateGenerator::searchByGradeRange(double min, double
     return results;
 }
 
-// ── Utility ──────────────────────────────────────────────────────────────
+// ─── Utility ─────────────────────────────────────────────────────────────────
 
 std::vector<Student> CertificateGenerator::getAllStudents() const {
+    std::lock_guard<std::mutex> lock(mutex_);
     std::vector<Student> results;
     results.reserve(students_.size());
     for (const auto& [name, student] : students_) {
@@ -102,53 +99,69 @@ std::vector<Student> CertificateGenerator::getAllStudents() const {
     return results;
 }
 
-// ── Sort — std::sort with custom lambdas ─────────────────────────────────
+// ─── Sort — uses std::sort with custom lambda comparators ────────────────────
 
 void CertificateGenerator::sortByName() {
-    std::vector<Student> vec = getAllStudents();
-    std::sort(vec.begin(), vec.end(),
-        [](const Student& a, const Student& b) {
-            return a.getName() < b.getName();
-        });
-    students_.clear();
-    for (const auto& s : vec) {
-        students_[s.getName()] = s;
+    std::lock_guard<std::mutex> lock(mutex_);
+    std::vector<Student*> ptrs;
+    ptrs.reserve(students_.size());
+    for (auto& [name, student] : students_) {
+        ptrs.push_back(&student);
     }
+    std::sort(ptrs.begin(), ptrs.end(),
+              [](const Student* a, const Student* b) {
+                  return toLower(a->getName()) < toLower(b->getName());
+              });
+
+    std::map<std::string, Student> sorted;
+    for (Student* p : ptrs) {
+        sorted[toLower(p->getName())] = *p;
+    }
+    students_ = std::move(sorted);
 }
 
 void CertificateGenerator::sortByGrade(bool descending) {
-    std::vector<Student> vec = getAllStudents();
-    std::sort(vec.begin(), vec.end(),
-        [descending](const Student& a, const Student& b) {
-            return descending
-                ? a.gradeToPoints() > b.gradeToPoints()
-                : a.gradeToPoints() < b.gradeToPoints();
-        });
-    students_.clear();
-    for (const auto& s : vec) {
-        students_[s.getName()] = s;
+    std::lock_guard<std::mutex> lock(mutex_);
+    std::vector<Student*> ptrs;
+    ptrs.reserve(students_.size());
+    for (auto& [name, student] : students_) {
+        ptrs.push_back(&student);
     }
+    std::sort(ptrs.begin(), ptrs.end(),
+              [descending](const Student* a, const Student* b) {
+                  double gpaA = a->gradeToPoints();
+                  double gpaB = b->gradeToPoints();
+                  return descending ? (gpaA > gpaB) : (gpaA < gpaB);
+              });
+
+    std::map<std::string, Student> sorted;
+    for (Student* p : ptrs) {
+        sorted[toLower(p->getName())] = *p;
+    }
+    students_ = std::move(sorted);
 }
 
-// Sorts by course first, then by name within the same course
 void CertificateGenerator::sortByCourse() {
-    std::vector<Student> vec = getAllStudents();
-    std::sort(vec.begin(), vec.end(),
-        [](const Student& a, const Student& b) {
-            if (a.getCourse() != b.getCourse())
-                return a.getCourse() < b.getCourse();
-            return a.getName() < b.getName();
-        });
-    students_.clear();
-    for (const auto& s : vec) {
-        students_[s.getName()] = s;
+    std::lock_guard<std::mutex> lock(mutex_);
+    std::vector<Student*> ptrs;
+    ptrs.reserve(students_.size());
+    for (auto& [name, student] : students_) {
+        ptrs.push_back(&student);
     }
+    std::sort(ptrs.begin(), ptrs.end(),
+              [](const Student* a, const Student* b) {
+                  return a->getCourse() < b->getCourse();
+              });
+
+    std::map<std::string, Student> sorted;
+    for (Student* p : ptrs) {
+        sorted[toLower(p->getName())] = *p;
+    }
+    students_ = std::move(sorted);
 }
 
-// ── File Input ───────────────────────────────────────────────────────────
+// ─── Input ───────────────────────────────────────────────────────────────────
 
-// Reads CSV with format: Name,Course,Grade per line.
-// Invalid lines are skipped with a warning — other lines continue processing.
 void CertificateGenerator::loadFromCsv(const std::string& filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
@@ -157,7 +170,10 @@ void CertificateGenerator::loadFromCsv(const std::string& filename) {
 
     std::string line;
     int lineNum = 0;
-    int loaded = 0;
+    int added = 0;
+
+    // Skip header row
+    if (!std::getline(file, line)) return;
 
     while (std::getline(file, line)) {
         lineNum++;
@@ -166,114 +182,128 @@ void CertificateGenerator::loadFromCsv(const std::string& filename) {
         std::stringstream ss(line);
         std::string name, course, grade;
 
-        std::getline(ss, name, ',');
-        std::getline(ss, course, ',');
-        std::getline(ss, grade, ',');
+        if (!std::getline(ss, name, ',') ||
+            !std::getline(ss, course, ',') ||
+            !std::getline(ss, grade)) {
+            std::cerr << "  Warning: Malformed CSV at line " << lineNum
+                      << " — skipping" << std::endl;
+            continue;
+        }
+
+        // Trim whitespace
+        auto trim = [](std::string& s) {
+            s.erase(0, s.find_first_not_of(" \t\r\n"));
+            s.erase(s.find_last_not_of(" \t\r\n") + 1);
+        };
+        trim(name); trim(course); trim(grade);
+
+        if (name.empty()) {
+            std::cerr << "  Warning: Empty name at line " << lineNum
+                      << " — skipping" << std::endl;
+            continue;
+        }
 
         try {
             addStudent(Student(name, course, grade));
-            loaded++;
-        } catch (const ValidationException& e) {
-            // Gracefully skip bad lines, report to stderr
-            std::cerr << "  \xe2\x9a\xa0 Line " << lineNum
-                      << " skipped: " << e.what() << std::endl;
+            added++;
+        }
+        catch (const ValidationException& e) {
+            std::cerr << "  Warning: Line " << lineNum << ": " << e.what()
+                      << " — skipping" << std::endl;
         }
     }
 
-    std::cout << "  Loaded " << loaded << " student(s) from "
-              << filename << std::endl;
+    std::cout << "  Loaded " << added << " student(s) from " << filename << std::endl;
 }
-
-// ── Console Input ────────────────────────────────────────────────────────
 
 Student CertificateGenerator::inputSingleStudent() {
     std::string name, course, grade;
 
-    std::cout << "  Enter Full Name: ";
+    std::cout << "  Enter student name: ";
     std::getline(std::cin, name);
 
-    std::cout << "  Enter Course Title: ";
+    std::cout << "  Enter course: ";
     std::getline(std::cin, course);
 
-    std::cout << "  Enter Grade (e.g., A, B+, 93): ";
+    std::cout << "  Enter grade (A, B+, 85, etc.): ";
     std::getline(std::cin, grade);
 
-    Student s(name, course, grade);
-    addStudent(s);
-    return s;
+    return Student(name, course, grade);
 }
 
-// ── Certificate Generation ───────────────────────────────────────────────
+// ─── Certificate Generation ──────────────────────────────────────────────────
 
-// Generate a certificate for a specific student by name
 void CertificateGenerator::generateCertificateFor(
     const std::string& name, CertType type, TemplateStyle style) const
 {
-    const Student* s = findStudent(name);
-    if (!s) {
-        std::cerr << "  \xe2\x9c\x97 Student \"" << name
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = students_.find(toLower(name));
+    if (it == students_.end()) {
+        std::cerr << "  Student \"" << name
                   << "\" not found." << std::endl;
         return;
     }
 
-    // Factory methods create the correct polymorphic types
+    const Student& s = it->second;
     auto tmpl = makeTemplate(style);
-    auto cert = makeCertificate(type, *s, *tmpl);
+    auto cert = makeCertificate(type, s, std::move(tmpl));
 
-    // Sanitise name for use as a filename
-    std::string safeName = s->getName();
+    std::string safeName = s.getName();
     for (char& c : safeName) if (c == ' ') c = '_';
 
     std::string typeStr = certTypeToString(type);
-    std::string filename = safeName + "_" + typeStr + ".html";
+    std::string filename = "output/" + safeName + "_" + typeStr + ".html";
+    std::filesystem::create_directories("output");
     std::ofstream file(filename);
 
     if (!file.is_open()) {
-        std::cerr << "  \xe2\x9c\x97 Could not create file "
+        std::cerr << "  Could not create file "
                   << filename << std::endl;
         return;
     }
 
     file << cert->generateHTML();
     file.close();
-    std::cout << "  \xe2\x9c\x93 Generated: " << filename << std::endl;
+    std::cout << "  Generated: " << filename << std::endl;
 }
 
-// Generate certificates for every student in the database
 void CertificateGenerator::generateAllCertificates(
     CertType type, TemplateStyle style) const
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (students_.empty()) {
         std::cout << "  No students in database." << std::endl;
         return;
     }
 
-    auto tmpl = makeTemplate(style);
+    std::filesystem::create_directories("output");
 
     for (const auto& [name, student] : students_) {
-        auto cert = makeCertificate(type, student, *tmpl);
+        auto tmpl = makeTemplate(style);
+        auto cert = makeCertificate(type, student, std::move(tmpl));
 
-        std::string safeName = name;
+        std::string safeName = student.getName();
         for (char& c : safeName) if (c == ' ') c = '_';
 
         std::string typeStr = certTypeToString(type);
-        std::string filename = safeName + "_" + typeStr + ".html";
+        std::string filename = "output/" + safeName + "_" + typeStr + ".html";
         std::ofstream file(filename);
 
         if (file.is_open()) {
             file << cert->generateHTML();
             file.close();
-            std::cout << "  \xe2\x9c\x93 Generated: " << filename << std::endl;
+            std::cout << "  Generated: " << filename << std::endl;
         } else {
-            std::cerr << "  \xe2\x9c\x97 Could not create file "
+            std::cerr << "  Could not create file "
                       << filename << std::endl;
         }
     }
 }
 
-// ── Statistics ───────────────────────────────────────────────────────────
+// ─── Statistics ───────────────────────────────────────────────────────────────
 
 CertificateGenerator::Statistics CertificateGenerator::computeStats() const {
+    std::lock_guard<std::mutex> lock(mutex_);
     Statistics stats{};
     stats.total = static_cast<int>(students_.size());
 
@@ -290,6 +320,7 @@ CertificateGenerator::Statistics CertificateGenerator::computeStats() const {
 }
 
 void CertificateGenerator::printStats() const {
+    // Reuse computeStats() instead of duplicating logic
     Statistics stats = computeStats();
 
     std::cout << "\n  ====== STATISTICS ======\n";

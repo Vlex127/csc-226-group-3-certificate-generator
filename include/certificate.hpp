@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <string>
 #include <memory>
 #include "person.hpp"
@@ -9,19 +9,20 @@ enum class TemplateStyle { Formal, Modern, Minimalist };
 
 std::string certTypeToString(CertType type);
 
-// ── Strategy Pattern ─────────────────────────────────────────────────────
+// ─── Strategy Pattern ──────────────────────────────────────────────────────
 // CertificateTemplate is the Strategy interface. Each concrete subclass
 // provides a different visual design for the certificate HTML output.
-// The Certificate class holds a reference to a template, allowing the
+// The Certificate class holds a unique_ptr to a template, allowing the
 // visual style to be swapped at runtime without changing the certificate logic.
 class CertificateTemplate {
 public:
     virtual ~CertificateTemplate() = default;
 
-    // Three pure virtual methods define the template's interface
+    // Three pure virtual methods define the template interface
     virtual std::string header(const std::string& certTypeName) const = 0;
     virtual std::string styles() const = 0;
-    virtual std::string body(const Student& student, const std::string& certTypeName) const = 0;
+    virtual std::string body(const Student& student, const std::string& certTypeName,
+                              const std::string& date) const = 0;
 };
 
 // FormalTemplate — traditional certificate with double border and serif font
@@ -29,7 +30,8 @@ class FormalTemplate : public CertificateTemplate {
 public:
     std::string header(const std::string& certTypeName) const override;
     std::string styles() const override;
-    std::string body(const Student& student, const std::string& certTypeName) const override;
+    std::string body(const Student& student, const std::string& certTypeName,
+                      const std::string& date) const override;
 };
 
 // ModernTemplate — gradient background, rounded corners, sans-serif
@@ -37,7 +39,8 @@ class ModernTemplate : public CertificateTemplate {
 public:
     std::string header(const std::string& certTypeName) const override;
     std::string styles() const override;
-    std::string body(const Student& student, const std::string& certTypeName) const override;
+    std::string body(const Student& student, const std::string& certTypeName,
+                      const std::string& date) const override;
 };
 
 // MinimalistTemplate — monospace font, clean lines, understated design
@@ -45,13 +48,14 @@ class MinimalistTemplate : public CertificateTemplate {
 public:
     std::string header(const std::string& certTypeName) const override;
     std::string styles() const override;
-    std::string body(const Student& student, const std::string& certTypeName) const override;
+    std::string body(const Student& student, const std::string& certTypeName,
+                      const std::string& date) const override;
 };
 
 // Factory function — returns the right template subclass for a given style enum
 std::unique_ptr<CertificateTemplate> makeTemplate(TemplateStyle style);
 
-// ── Template Method Pattern ──────────────────────────────────────────────
+// ─── Template Method Pattern ────────────────────────────────────────────────
 // Certificate is the abstract base. generateHTML() defines the skeleton
 // algorithm: header → styles → body. Subclasses only override getTypeName()
 // and getDescriptor() to customise the content at specific steps.
@@ -59,9 +63,9 @@ std::unique_ptr<CertificateTemplate> makeTemplate(TemplateStyle style);
 class Certificate {
 protected:
     const Student& student_;
-    const CertificateTemplate& template_;
+    std::unique_ptr<CertificateTemplate> template_; // Owned by Certificate
 public:
-    Certificate(const Student& student, const CertificateTemplate& tmpl);
+    Certificate(const Student& student, std::unique_ptr<CertificateTemplate> tmpl);
     virtual ~Certificate() = default;
 
     // Template method — calls the three strategy methods in order
@@ -98,4 +102,4 @@ public:
 
 // Factory function — creates the correct Certificate subclass at runtime
 std::unique_ptr<Certificate> makeCertificate(
-    CertType type, const Student& student, const CertificateTemplate& tmpl);
+    CertType type, const Student& student, std::unique_ptr<CertificateTemplate> tmpl);

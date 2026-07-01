@@ -1,36 +1,46 @@
-#include "certificate.hpp"
+﻿#include "certificate.hpp"
 #include "exceptions.hpp"
+#include <ctime>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
+
+// Get current date formatted as "Month Year" (e.g., "June 2026")
+static std::string getCurrentDate() {
+    std::time_t now = std::time(nullptr);
+    std::ostringstream oss;
+    oss << std::put_time(std::localtime(&now), "%B %Y");
+    return oss.str();
+}
 
 // Converts the CertType enum to a human-readable string
 std::string certTypeToString(CertType type) {
     switch (type) {
-        case CertType::Excellence:  return "Excellence";
-        case CertType::Completion:  return "Completion";
-        case CertType::Participation: return "Participation";
+        case CertType::Excellence:     return "Excellence";
+        case CertType::Completion:      return "Completion";
+        case CertType::Participation:   return "Participation";
+        default: return "Unknown";
     }
-    return "Unknown";
 }
 
-// ── Factory: Template ──
+// ─── Factory: Template ──────────────────────────────────────────────────────
 // Returns the correct CertificateTemplate subclass based on the enum
 std::unique_ptr<CertificateTemplate> makeTemplate(TemplateStyle style) {
     switch (style) {
         case TemplateStyle::Formal:     return std::make_unique<FormalTemplate>();
         case TemplateStyle::Modern:     return std::make_unique<ModernTemplate>();
         case TemplateStyle::Minimalist: return std::make_unique<MinimalistTemplate>();
+        default: return std::make_unique<FormalTemplate>();
     }
-    return std::make_unique<FormalTemplate>();
 }
 
-// ── Formal Template ──────────────────────────────────────────────────────
+// ─── Formal Template ────────────────────────────────────────────────────────
 
 std::string FormalTemplate::header(const std::string& certTypeName) const {
     std::ostringstream h;
-    h << "<!DOCTYPE html>\n<html lang='en'>\n<head>\n"
-      << "<meta charset='UTF-8'>\n"
+    h << "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n"
+      << "<meta charset=\"UTF-8\">\n"
       << "<title>Certificate of " << certTypeName << "</title>\n"
       << "</head>\n<body>\n";
     return h.str();
@@ -63,42 +73,47 @@ std::string FormalTemplate::styles() const {
   .reason { font-size: 20px; color: #333; line-height: 1.6; margin-bottom: 50px; }
   .footer { display: flex; justify-content: space-between; margin-top: 50px; font-size: 16px; color: #666; }
   .signature { border-top: 1px solid #aaa; width: 200px; padding-top: 5px; }
+  .lasu-logo { width: 48px; height: 48px; margin-bottom: 6px; object-fit: contain; }
+  .lasu-seal { font-size: 14px; color: #1B5E20; margin-top: 10px; font-weight: bold; letter-spacing: 1px; }
 </style>)";
 }
 
-std::string FormalTemplate::body(const Student& student, const std::string& certTypeName) const {
+std::string FormalTemplate::body(const Student& student, const std::string& certTypeName,
+                                  const std::string& date) const {
     std::ostringstream b;
-    b << "<div class='certificate'>\n"
-      << "  <div class='header'>Certificate of " << certTypeName << "</div>\n"
-      << "  <div class='sub'>This honor is proudly presented to</div>\n"
-      << "  <div class='name'>" << student.getName() << "</div>\n"
-      << "  <div class='reason'>for successfully completing the course <br><strong>"
+    b << "<div class=\"certificate\">\n"
+      << "  <div class=\"header\">Certificate of " << certTypeName << "</div>\n"
+      << "  <div class=\"sub\">This honor is proudly presented to</div>\n"
+      << "  <div class=\"name\">" << student.getName() << "</div>\n"
+      << "  <div class=\"reason\">for successfully completing the course <br><strong>"
       << student.getCourse() << "</strong><br> with a grade of <strong>"
       << student.getGrade() << "</strong>.</div>\n"
-      << "  <div class='footer'>\n"
-      << "    <div>Date: June 2026</div>\n"
-      << "    <div class='signature'>Department Coordinator</div>\n"
+      << "  <img class=\"lasu-logo\" src=\"../lasu.png\" alt=\"LASU\">\n"
+      << "  <div class=\"lasu-seal\">Lagos State University &mdash; Department of Computer Science</div>\n"
+      << "  <div class=\"footer\">\n"
+      << "    <div>Date: " << date << "</div>\n"
+      << "    <div class=\"signature\">Department Coordinator</div>\n"
       << "  </div>\n</div>\n";
     return b.str();
 }
 
-// ── Modern Template ──────────────────────────────────────────────────────
+// ─── Modern Template ────────────────────────────────────────────────────────
 
 std::string ModernTemplate::header(const std::string& certTypeName) const {
     std::ostringstream h;
-    h << "<!DOCTYPE html>\n<html lang='en'>\n<head>\n"
-      << "<meta charset='UTF-8'>\n"
+    h << "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n"
+      << "<meta charset=\"UTF-8\">\n"
       << "<title>Certificate of " << certTypeName << "</title>\n"
       << "</head>\n<body>\n";
     return h.str();
 }
 
 std::string ModernTemplate::styles() const {
-    // Gradient background, rounded corners, coloured accent bar at top
+    // Gradient background, rounded corners, sans-serif
     return R"(
 <style>
   body {
-    font-family: 'Helvetica', Arial, sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     display: flex;
     justify-content: center;
@@ -107,53 +122,51 @@ std::string ModernTemplate::styles() const {
     margin: 0;
   }
   .certificate {
-    background: white;
     border-radius: 20px;
+    background: white;
     padding: 60px;
-    width: 680px;
+    width: 750px;
     text-align: center;
     box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    position: relative;
-    overflow: hidden;
   }
-  .certificate::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 8px;
-    background: linear-gradient(90deg, #667eea, #764ba2);
-  }
-  .header { font-size: 38px; color: #667eea; margin-bottom: 10px; font-weight: 800; letter-spacing: 2px; }
-  .sub { font-size: 16px; color: #999; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 3px; }
-  .name { font-size: 36px; color: #333; margin-bottom: 15px; }
-  .badge { font-size: 14px; background: #667eea; color: white; display: inline-block; padding: 6px 24px; border-radius: 20px; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 2px; }
+  .header { font-size: 36px; color: #667eea; margin-bottom: 20px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; }
+  .sub { font-size: 16px; color: #888; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 2px; }
+  .name { font-size: 38px; color: #333; margin-bottom: 30px; font-weight: 300; }
   .reason { font-size: 18px; color: #555; line-height: 1.8; margin-bottom: 40px; }
-  .footer { display: flex; justify-content: space-between; font-size: 14px; color: #aaa; border-top: 2px solid #eee; padding-top: 20px; }
+  .footer { display: flex; justify-content: space-between; margin-top: 40px; font-size: 14px; color: #999; }
+  .signature { border-top: 2px solid #667eea; width: 200px; padding-top: 10px; margin-top: 10px; }
+  .lasu-logo { width: 60px; height: 60px; margin-bottom: 10px; object-fit: contain; }
+  .lasu-seal { font-size: 12px; color: #1B5E20; margin-top: 15px; font-weight: bold; letter-spacing: 1px; }
 </style>)";
 }
 
-std::string ModernTemplate::body(const Student& student, const std::string& certTypeName) const {
+std::string ModernTemplate::body(const Student& student, const std::string& certTypeName,
+                                   const std::string& date) const {
     std::ostringstream b;
-    b << "<div class='certificate'>\n"
-      << "  <div class='header'>Certificate of " << certTypeName << "</div>\n"
-      << "  <div class='sub'>Presented to</div>\n"
-      << "  <div class='name'>" << student.getName() << "</div>\n"
-      << "  <div class='badge'>" << student.getGrade() << "</div>\n"
-      << "  <div class='reason'>For outstanding performance in<br><strong>"
-      << student.getCourse() << "</strong></div>\n"
-      << "  <div class='footer'>\n"
-      << "    <div>June 2026</div>\n"
-      << "    <div>Department Coordinator</div>\n"
+    b << "<div class=\"certificate\">\n"
+      << "  <div class=\"header\">Certificate of " << certTypeName << "</div>\n"
+      << "  <div class=\"sub\">Proudly Awarded To</div>\n"
+      << "  <div class=\"name\">" << student.getName() << "</div>\n"
+      << "  <div class=\"reason\">\n"
+      << "    For outstanding performance in<br>\n"
+      << "    <strong style=\"font-size: 22px; color: #667eea;\">" << student.getCourse() << "</strong><br><br>\n"
+      << "    Grade Achieved: <strong>" << student.getGrade() << "</strong>\n"
+      << "  </div>\n"
+      << "  <img class=\"lasu-logo\" src=\"../lasu.png\" alt=\"LASU\">\n"
+      << "  <div class=\"lasu-seal\">Lagos State University &mdash; Department of Computer Science</div>\n"
+      << "  <div class=\"footer\">\n"
+      << "    <div>" << date << "</div>\n"
+      << "    <div class=\"signature\">Department Coordinator</div>\n"
       << "  </div>\n</div>\n";
     return b.str();
 }
 
-// ── Minimalist Template ──────────────────────────────────────────────────
+// ─── Minimalist Template ────────────────────────────────────────────────────
 
 std::string MinimalistTemplate::header(const std::string& certTypeName) const {
     std::ostringstream h;
-    h << "<!DOCTYPE html>\n<html lang='en'>\n<head>\n"
-      << "<meta charset='UTF-8'>\n"
+    h << "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n"
+      << "<meta charset=\"UTF-8\">\n"
       << "<title>Certificate of " << certTypeName << "</title>\n"
       << "</head>\n<body>\n";
     return h.str();
@@ -184,43 +197,49 @@ std::string MinimalistTemplate::styles() const {
   .name { font-size: 30px; color: #000; margin-bottom: 30px; font-weight: bold; }
   .reason { font-size: 16px; color: #444; line-height: 2; margin-bottom: 50px; }
   .footer { border-top: 1px solid #ddd; padding-top: 20px; font-size: 12px; color: #888; }
+  .lasu-logo { width: 40px; height: 40px; margin-bottom: 6px; object-fit: contain; }
+  .lasu-seal { font-size: 10px; color: #1B5E20; margin-top: 10px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; }
 </style>)";
 }
 
-std::string MinimalistTemplate::body(const Student& student, const std::string& certTypeName) const {
+std::string MinimalistTemplate::body(const Student& student, const std::string& certTypeName,
+                                      const std::string& date) const {
     std::ostringstream b;
-    b << "<div class='certificate'>\n"
-      << "  <div class='header'>Certificate of " << certTypeName << "</div>\n"
-      << "  <div class='sub'>Awarded to</div>\n"
-      << "  <div class='name'>" << student.getName() << "</div>\n"
-      << "  <div class='reason'>"
+    b << "<div class=\"certificate\">\n"
+      << "  <div class=\"header\">Certificate of " << certTypeName << "</div>\n"
+      << "  <div class=\"sub\">Awarded to</div>\n"
+      << "  <div class=\"name\">" << student.getName() << "</div>\n"
+      << "  <div class=\"reason\">"
       << "Course: <strong>" << student.getCourse() << "</strong><br>\n"
       << "Grade:  <strong>" << student.getGrade() << "</strong>\n"
       << "  </div>\n"
-      << "  <div class='footer'>Date: June 2026 &mdash; Department Coordinator</div>\n"
+      << "  <img class=\"lasu-logo\" src=\"../lasu.png\" alt=\"LASU\">\n"
+      << "  <div class=\"lasu-seal\">Lagos State University &mdash; Department of Computer Science</div>\n"
+      << "  <div class=\"footer\">" << date << " &mdash; Department Coordinator</div>\n"
       << "</div>\n";
     return b.str();
 }
 
-// ── Certificate (Template Method) ────────────────────────────────────────
+// ─── Certificate (Template Method) ──────────────────────────────────────────
 
-Certificate::Certificate(const Student& student, const CertificateTemplate& tmpl)
-    : student_(student), template_(tmpl) {}
+Certificate::Certificate(const Student& student, std::unique_ptr<CertificateTemplate> tmpl)
+    : student_(student), template_(std::move(tmpl)) {}
 
 // Template method — defines the skeleton algorithm for certificate generation.
 // Subclasses only override getTypeName() to plug in at the right step.
 // The actual HTML rendering is delegated to the strategy object (template_).
 std::string Certificate::generateHTML() const {
     std::string typeName = getTypeName();
+    std::string date = getCurrentDate();  // Dynamic date
     std::string html;
-    html += template_.header(typeName);
-    html += template_.styles();
-    html += template_.body(student_, typeName);
+    html += template_->header(typeName);
+    html += template_->styles();
+    html += template_->body(student_, typeName, date);
     html += "</body>\n</html>";
     return html;
 }
 
-// ── Certificate Subclasses ───────────────────────────────────────────────
+// ─── Certificate Subclasses ────────────────────────────────────────────────
 
 std::string CertificateOfExcellence::getTypeName() const { return "Excellence"; }
 std::string CertificateOfExcellence::getDescriptor() const {
@@ -237,15 +256,15 @@ std::string CertificateOfParticipation::getDescriptor() const {
     return "for active participation";
 }
 
-// ── Factory: Certificate ──
+// ─── Factory: Certificate ──────────────────────────────────────────────────
 // Creates the correct Certificate subclass at runtime based on the enum
 std::unique_ptr<Certificate> makeCertificate(
-    CertType type, const Student& student, const CertificateTemplate& tmpl)
+    CertType type, const Student& student, std::unique_ptr<CertificateTemplate> tmpl)
 {
     switch (type) {
-        case CertType::Excellence:   return std::make_unique<CertificateOfExcellence>(student, tmpl);
-        case CertType::Completion:   return std::make_unique<CertificateOfCompletion>(student, tmpl);
-        case CertType::Participation: return std::make_unique<CertificateOfParticipation>(student, tmpl);
+        case CertType::Excellence:    return std::make_unique<CertificateOfExcellence>(student, std::move(tmpl));
+        case CertType::Completion:    return std::make_unique<CertificateOfCompletion>(student, std::move(tmpl));
+        case CertType::Participation: return std::make_unique<CertificateOfParticipation>(student, std::move(tmpl));
+        default:                      return std::make_unique<CertificateOfCompletion>(student, std::move(tmpl));
     }
-    return std::make_unique<CertificateOfCompletion>(student, tmpl);
 }
