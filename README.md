@@ -5,13 +5,14 @@
 A production-grade C++ web application for generating, managing, and printing student certificates with multiple templates, real-time statistics, and a fully interactive browser-based UI — no frameworks, no dependencies.
 
 | | |
-|---|---|
+|---|---|---|
 | **Course** | CSC 226 — Object-Oriented Programming II |
 | **Group** | 6 — 20 Members |
 | **Tech** | C++17, Winsock2 (custom HTTP server), Embedded HTML/CSS/JS |
 | **Patterns** | Strategy, Template Method, Factory, Inheritance, Polymorphism, RAII |
 | **Build** | `g++ -std=c++17 -I include main.cpp src/*.cpp -lws2_32` |
 | **Port** | `localhost:8080` |
+| **Usage Guide** | [lasu-csc226-group6.vercel.app](https://lasu-csc226-group6.vercel.app) |
 
 ---
 
@@ -158,29 +159,6 @@ The server starts on **http://localhost:8080** and opens in your browser automat
 | POST | `/loadcontent` | Load CSV from pasted text | `{"status":"ok"}` |
 | POST | `/generate` | Generate certificates | `{"status":"ok"}` |
 | POST | `/sort` | Sort student list | `{"status":"ok"}` |
-
----
-
-## Presentation
-
-This project includes a full presentation slide deck:
-
-| File | Format | Description |
-|---|---|---|
-| `presentation.html` | HTML (Reveal.js) | Interactive slide deck — open in any browser |
-| `presentation.pdf` | PDF | Export of the presentation for printing/handing in |
-| `presentation.pptx` | PowerPoint | Editable PowerPoint version |
-| `generate.py` | Python | Script to regenerate the `.pptx` from scratch |
-| `presentation-readme.md` | Markdown | Speaker notes — what to say on each slide |
-
-### To view the HTML presentation:
-Open `presentation.html` in any browser. Navigate with arrow keys.
-
-### To regenerate the PowerPoint:
-```bash
-pip install python-pptx
-python generate.py
-```
 
 ---
 
