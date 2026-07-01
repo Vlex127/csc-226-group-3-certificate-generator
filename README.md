@@ -173,7 +173,7 @@ The server starts on **http://localhost:8080** and opens in your browser automat
 | Certificate Generation | Placeholder |
 | Statistics View | Placeholder |
 
-See `SCREENSHOTS.md` or the usage guide (`usage-guide.html`) for instructions on capturing screenshots from the running server.
+See  the usage guide (`lasu-csc226-group6.vercel.app`) for instructions on capturing screenshots from the running server.
 
 ---
 
