@@ -83,32 +83,47 @@ static const char* UI_HTML = R"html(
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg-primary: #09090b;
-  --bg-secondary: #18181b;
-  --bg-tertiary: #27272a;
-  --bg-elevated: #3f3f46;
-  --border: #3f3f46;
-  --border-hover: #52525b;
-  --text-primary: #fafafa;
-  --text-secondary: #a1a1aa;
-  --text-muted: #71717a;
-  --accent: #6366f1;
-  --accent-hover: #818cf8;
-  --accent-dim: rgba(99, 102, 241, 0.15);
-  --success: #22c55e;
-  --success-dim: rgba(34, 197, 94, 0.15);
-  --warning: #f59e0b;
-  --warning-dim: rgba(245, 158, 11, 0.15);
-  --error: #ef4444;
-  --error-dim: rgba(239, 68, 68, 0.15);
-  --lasu-green: #1B5E20;
-  --lasu-gold: #FFD700;
+  --bg-primary: #faf9f5;
+  --bg-secondary: #F4F3EE;
+  --bg-tertiary: #e8e6dc;
+  --bg-elevated: #d1cfc5;
+  --border: #e8e6dc;
+  --border-hover: #b0aea5;
+  --text-primary: #141413;
+  --text-secondary: #4a4a47;
+  --text-muted: #b0aea5;
+  --accent: #d97757;
+  --accent-hover: #c86645;
+  --accent-dim: rgba(217, 119, 87, 0.15);
+  --secondary: #6a9bcc;
+  --secondary-dim: rgba(106, 155, 204, 0.15);
+  --success: #788c5d;
+  --success-dim: rgba(120, 140, 93, 0.15);
+  --warning: #c89d3c;
+  --warning-dim: rgba(200, 157, 60, 0.15);
+  --error: #c0392b;
+  --error-dim: rgba(192, 57, 43, 0.15);
+  --lasu-green: #788c5d;
+  --lasu-gold: #d97757;
   --radius-sm: 6px;
   --radius: 8px;
   --radius-lg: 12px;
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+[data-theme="dark"] {
+  --bg-primary: #141413;
+  --bg-secondary: #1a1a18;
+  --bg-tertiary: #2a2a27;
+  --bg-elevated: #3a3a37;
+  --border: #2a2a27;
+  --border-hover: #3a3a37;
+  --text-primary: #faf9f5;
+  --text-secondary: #b0aea5;
+  --text-muted: #6a6a65;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
 }
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:Inter,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;background:var(--bg-primary);color:var(--text-primary);min-height:100vh;line-height:1.6}
@@ -125,9 +140,11 @@ body{font-family:Inter,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;back
 .brand-title{font-size:20px;font-weight:700;color:var(--text-primary);letter-spacing:-0.3px}
 .brand-subtitle{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px}
 .brand-subtitle span{color:var(--accent)}
-.header-badge{display:flex;align-items:center;gap:8px;background:var(--accent-dim);color:var(--accent);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:500}
-.header-badge::before{content:"";width:8px;height:8px;background:var(--success);border-radius:50%;animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+.theme-toggle{display:flex;gap:2px;background:var(--bg-tertiary);padding:3px;border-radius:var(--radius)}
+.theme-btn{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border:none;background:transparent;color:var(--text-muted);border-radius:var(--radius-sm);cursor:pointer;transition:var(--transition)}
+.theme-btn:hover{color:var(--text-primary)}
+.theme-btn.active{background:var(--bg-primary);color:var(--accent);box-shadow:var(--shadow)}
 .main{flex:1;padding:32px;max-width:1400px;margin:0 auto;width:100%}
 .tabs{display:flex;gap:4px;background:var(--bg-secondary);padding:4px;border-radius:var(--radius-lg);margin-bottom:32px;width:fit-content}
 .tab{padding:10px 20px;border:none;background:transparent;color:var(--text-secondary);font-size:14px;font-weight:500;border-radius:var(--radius);cursor:pointer;transition:var(--transition)}
@@ -147,7 +164,7 @@ input::placeholder{color:var(--text-muted)}
 select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2716%27 height=%2716%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%23a1a1aa%27 stroke-width=%272%27%3E%3Cpath d=%27M6 9l6 6 6-6%27/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:40px}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;border:none;border-radius:var(--radius);font-size:14px;font-weight:500;font-family:inherit;cursor:pointer;transition:var(--transition)}
 .btn-primary{background:var(--accent);color:white}
-.btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 4px 12px rgba(99,102,241,0.3)}
+.btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 4px 12px rgba(217,119,87,0.35)}
 .btn-secondary{background:var(--bg-tertiary);color:var(--text-primary)}
 .btn-secondary:hover{background:var(--bg-elevated)}
 .btn-danger{background:var(--error-dim);color:var(--error)}
@@ -163,7 +180,7 @@ tr:last-child td{border-bottom:none}
 tr:hover td{background:var(--bg-tertiary)}
 .grade-badge{display:inline-block;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;font-family:JetBrains Mono,monospace}
 .grade-a{background:var(--success-dim);color:var(--success)}
-.grade-b{background:var(--accent-dim);color:var(--accent)}
+.grade-b{background:var(--secondary-dim);color:var(--secondary)}
 .grade-c{background:var(--warning-dim);color:var(--warning)}
 .grade-f{background:var(--error-dim);color:var(--error)}
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
@@ -211,7 +228,17 @@ tr:hover td{background:var(--bg-tertiary)}
           <div class="brand-subtitle"><span>Lagos State University</span> - Faculty of Computing - Dept. of Computer Science</div>
         </div>
       </div>
-      <div class="header-badge">System Online</div>
+      <div class="theme-toggle">
+        <button class="theme-btn" data-theme="light" title="Light mode" onclick="setTheme('light')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </button>
+        <button class="theme-btn" data-theme="dark" title="Dark mode" onclick="setTheme('dark')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <button class="theme-btn" data-theme="system" title="Match system" onclick="setTheme('system')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </button>
+      </div>
     </div>
   </header>
   <main class="main">
@@ -353,7 +380,10 @@ function quickGen(n){document.getElementById("gen-name").value=n;switchTab("gene
 async function loadCerts(){const tb=document.getElementById("certs-table");try{const r=await fetch(API+"/certs"),d=await r.json();if(d.status==="ok"&&d.files.length>0){tb.innerHTML=d.files.map(f=>"<tr><td style=`\"font-family:JetBrains Mono,monospace;font-size:13px`\">"+f+"</td><td>"+(f.includes("Excellence")?"Excellence":f.includes("Completion")?"Completion":"Participation")+"</td><td><button class=action-btn onclick=`\"window.open(`\'"+f+"`\',`\'_blank`\')`\">View</button></td></tr>").join("")}else tb.innerHTML="<tr><td colspan=3 class=empty-state><h3>No certificates generated</h3><p>Generated certificates will appear here.</p></td></tr>"}catch(e){showMsg("Error loading certificates","error")}}
 async function loadStats(){try{const r=await fetch(API+"/stats"),d=await r.json();if(d.status==="ok"){document.getElementById("stats-total").textContent=d.data.total||0;document.getElementById("stats-gpa").textContent=(d.data.avgGpa||0).toFixed(2);const courses=d.data.courses||{},grades=d.data.grades||{};document.getElementById("course-stats").innerHTML=Object.keys(courses).length>0?Object.entries(courses).map(([c,n])=>"<div style=display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)><span>"+c+"</span><span style=color:var(--accent)>"+n+" student"+(n!==1?"s":"")+"</span></div>").join(""):"<p>No data</p>";document.getElementById("grade-stats").innerHTML=Object.keys(grades).length>0?Object.entries(grades).map(([g,n])=>"<div style=display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)><span><span class=`\"grade-badge "+getGradeClass(g)+"`\">"+g+"</span></span><span style=color:var(--success)>"+n+"</span></div>").join(""):"<p>No data</p>"}}catch(e){showMsg("Error loading statistics","error")}}
 function loadCSV(){const f=prompt("Enter CSV filename:","students.csv");if(!f)return;fetch(API+"/load",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:"filename="+encodeURIComponent(f)}).then(r=>r.json()).then(d=>{if(d.status==="ok"){showMsg("CSV loaded!","success");refreshTable();loadDashboard()}else showMsg(d.message||"Error loading CSV","error")}).catch(()=>showMsg("Error loading CSV","error"))}
-loadDashboard();
+function setTheme(t){document.documentElement.dataset.theme=t;localStorage.setItem("theme",t);document.querySelectorAll(".theme-btn").forEach(b=>b.classList.toggle("active",b.dataset.theme===t))}
+function initTheme(){const s=localStorage.getItem("theme")||"system";const t=s==="system"?(window.matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light"):s;document.documentElement.dataset.theme=t;document.querySelectorAll(".theme-btn").forEach(b=>b.classList.toggle("active",b.dataset.theme===s))}
+window.matchMedia("(prefers-color-scheme:dark)").addEventListener("change",()=>{const s=localStorage.getItem("theme")||"system";if(s==="system"){const t=window.matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light";document.documentElement.dataset.theme=t}})
+initTheme();loadDashboard();
 </script>
 </body>
 </html>

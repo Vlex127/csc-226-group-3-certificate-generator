@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LASU Certificate Generator | CSC 226</title>
+    <!-- Reveal.js core & themes -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/dracula.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css" />
+    <style>
+        /* --- reset / base --- */
+        .reveal {
+            background: #1a1817;
+            color: #faf9f5;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        .reveal h1,
+        .reveal h2 {
+            color: #d97757;
+            text-transform: none;
+            letter-spacing: -0.02em;
+        }
+        .reveal h2 {
+            font-size: 1.6em;
+            border-bottom: 2px solid #d97757;
+            display: inline-block;
+            padding-bottom: 8px;
+            margin-bottom: 20px;
+        }
+        .reveal h3 {
+            color: #faf9f5;
+            text-transform: none;
+            font-size: 1.2em;
+        }
+        .reveal p,
+        .reveal li {
+            color: #b0aea5;
+            font-size: 0.85em;
+        }
+        .reveal li {
+            margin-bottom: 6px;
+        }
+        .reveal .subtitle {
+            color: #b0aea5;
+            font-size: 0.75em;
+            margin-top: -10px;
+            margin-bottom: 25px;
+        }
+        .reveal strong {
+            color: #faf9f5;
+        }
+        .reveal code {
+            font-size: 0.72em;
+            line-height: 1.5;
+        }
+        .reveal pre {
+            width: 100%;
+            margin: 0;
+            box-shadow: none;
+            border-radius: 8px;
+        }
+        .reveal pre code {
+            max-height: none;
+            padding: 18px;
+            border-radius: 8px;
+        }
+        .reveal .slides {
+            text-align: left;
+        }
+        .reveal .slides section {
+            padding: 10px;
+        }
+        .cols {
+            display: flex;
+            gap: 20px;
+        }
+        .col {
+            flex: 1;
+        }
+        .tag {
+            display: inline-block;
+            padding: 4px 14px;
+            margin: 3px;
+            border-radius: 16px;
+            font-size: 0.55em;
+            font-weight: 600;
+            border: 1px solid;
+        }
+        .tag-accent {
+            color: #d97757;
+            border-color: #d97757;
+        }
+        .tag-blue {
+            color: #6a9bcc;
+            border-color: #6a9bcc;
+        }
+        .tag-green {
+            color: #788c5d;
+            border-color: #788c5d;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 10px;
+        }
+        .feature-card {
+            background: #2a2522;
+            border: 1px solid #3a3532;
+            border-radius: 8px;
+            padding: 14px 16px;
+        }
+        .feature-card h4 {
+            color: #faf9f5;
+            font-size: 0.75em;
+            margin: 0 0 4px 0;
+        }
+        .feature-card p {
+            margin: 0;
+            font-size: 0.65em;
+        }
+        .concept-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .concept-card {
+            background: #2a2522;
+            border: 1px solid #3a3532;
+            border-radius: 6px;
+            padding: 10px;
+            text-align: center;
+        }
+        .concept-card h4 {
+            color: #d97757;
+            font-size: 0.65em;
+            margin: 0 0 3px 0;
+        }
+        .concept-card p {
+            margin: 0;
+            font-size: 0.55em;
+            color: #6a6a65;
+        }
+        .arch-box {
+            display: inline-block;
+            background: #2a2522;
+            border: 1px solid #d97757;
+            border-radius: 8px;
+            padding: 14px 20px;
+            margin: 0 5px;
+            text-align: center;
+            font-size: 0.7em;
+            font-weight: 600;
+        }
+        .arch-arrow {
+            display: inline;
+            font-size: 1.2em;
+            color: #d97757;
+            margin: 0 5px;
+        }
+        .team {
+            font-size: 0.45em;
+            color: #6a6a65;
+            margin-top: 20px;
+            line-height: 1.6;
+        }
+        .preview-img {
+            border-radius: 8px;
+            border: 1px solid #3a3532;
+            max-width: 100%;
+            height: auto;
+            background: #2a2522;
+        }
+        /* fix for missing text in some slides: ensure all text is visible */
+        .reveal .slides section .subtitle {
+            color: #b0aea5;
+            opacity: 1;
+        }
+        .reveal .slides section p,
+        .reveal .slides section li {
+            color: #b0aea5;
+            opacity: 1;
+        }
+        .reveal .slides section h4 {
+            color: #faf9f5;
+        }
+        .reveal .slides section .feature-card p {
+            color: #b0aea5;
+        }
+        .reveal .slides section .concept-card p {
+            color: #6a6a65;
+        }
+        .reveal .slides section .team {
+            color: #6a6a65;
+        }
+        /* ensure table text is visible */
+        .reveal table th,
+        .reveal table td {
+            color: #b0aea5;
+        }
+        .reveal table th {
+            color: #6a6a65;
+        }
+        .reveal .col ul li {
+            color: #b0aea5;
+        }
+        /* code blocks keep text */
+        .reveal pre code {
+            color: #faf9f5;
+        }
+        /* small fix for template method code */
+        .reveal .col pre code {
+            font-size: 0.6em;
+        }
+    </style>
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+
+            <!-- SLIDE 1: TITLE -->
+            <section>
+                <h1 style="font-size:2.8em;">LASU Certificate <br />Generator</h1>
+                <p style="font-size:0.85em;margin-top:-5px;color:#b0aea5;">
+                    OOP Design Patterns &middot; C++17 &middot; Winsock HTTP Server &middot; Web UI
+                </p>
+                <p style="font-size:0.55em;margin-top:20px;color:#faf9f5;font-weight:600;">
+                    CSC 226 &mdash; Object-Oriented Programming II &mdash; Lagos State University &mdash; July 2026
+                </p>
+                <div style="margin-top:15px;">
+                    <span class="tag tag-accent">Strategy</span>
+                    <span class="tag tag-blue">Template Method</span>
+                    <span class="tag tag-green">Factory</span>
+                    <span class="tag tag-accent">Inheritance</span>
+                    <span class="tag tag-blue">Polymorphism</span>
+                    <span class="tag tag-green">RAII</span>
+                    <span class="tag tag-accent">std::map</span>
+                    <span class="tag tag-blue">Multithreading</span>
+                </div>
+                <div class="team">
+                    Group 6: Idowu Fawaz, Idowu Matthew, Ikechukwu Queen, Inedu Esther, Iniotuh Greatest,<br />
+                    Iwakun Oluwasegun, Iwuno Vincent, Iyaniwura George, Jawando Fuad, Jeremiah David,<br />
+                    Joseph Elizabeth, Kalejaiye Halimah, Kasali Damilola, Kassim Oluwatimilehin,<br />
+                    Kehinde Oyindamola, Kolawole Abubakar, Kwegan Sean, Lamina Rihanat, Lawal Sahal, Lawal Ibrahim
+                </div>
+            </section>
+
+            <!-- SLIDE 2: OVERVIEW + ARCH -->
+            <section>
+                <h2>Overview &amp; Architecture</h2>
+                <p class="subtitle">Desktop web app: generate, manage, and print HTML certificates</p>
+                <div class="feature-grid">
+                    <div class="feature-card"><h4>3 Certificate Types</h4><p>Excellence, Completion, Participation</p></div>
+                    <div class="feature-card"><h4>3 Template Styles</h4><p>Formal (serif), Modern (gradient), Minimalist (mono)</p></div>
+                    <div class="feature-card"><h4>CSV Batch Import</h4><p>File path or paste &middot; 10 sample students</p></div>
+                    <div class="feature-card"><h4>Search, Sort &amp; Stats</h4><p>Name, course, GPA &middot; Per-course &amp; grade distro</p></div>
+                </div>
+                <div style="margin-top:20px;text-align:center;">
+                    <span class="arch-box" style="border-color:#6a9bcc;">Browser</span>
+                    <span class="arch-arrow">&rarr;</span>
+                    <span class="arch-box" style="border-color:#6a9bcc;">HttpServer<br /><small>Winsock TCP</small></span>
+                    <span class="arch-arrow">&rarr;</span>
+                    <span class="arch-box" style="border-color:#d97757;">Certificate<br />Generator<br /><small>std::map CRUD</small></span>
+                    <span class="arch-arrow">&rarr;</span>
+                    <span class="arch-box" style="border-color:#788c5d;">Certificate<br /><small>Template Method</small></span>
+                </div>
+                <p style="font-size:0.5em;color:#6a6a65;margin-top:12px;">
+                    Data flow: Browser &rarr; HTTP (JSON) &rarr; HttpServer &rarr; CertificateGenerator &rarr; Certificate + Template &rarr; HTML file
+                </p>
+            </section>
+
+            <!-- SLIDE 3: INHERITANCE + ENCAP -->
+            <section>
+                <h2>Inheritance &amp; Encapsulation</h2>
+                <p class="subtitle">Person (abstract) &rarr; Student (concrete) &middot; All data private</p>
+                <div class="cols">
+                    <div class="col">
+                        <pre><code class="cpp" data-trim>
+                            class Person {                   // Abstract base
+                            protected:
+                                std::string name_;
+                            public:
+                                virtual ~Person() = default;
+                                virtual std::string
+                                    getDescription() const = 0; // pure virtual
+                            };
+
+                            class Student : public Person {  // is-a Person
+                                std::string course_, grade_;
+                            public:
+                                double gradeToPoints() const;
+                                // 'A'->4.0  'B+'->3.3  '93'->3.72
+                                static bool isValidGrade(const&);
+                                std::string getDescription()
+                                    const override;
+                            };
+                        </code></pre>
+                    </div>
+                    <div class="col">
+                        <pre><code class="cpp" data-trim>
+                            // Encapsulation in Generator
+                            class CertificateGenerator {
+                                std::map&lt;std::string, Student&gt;
+                                    students_;              // private
+                                mutable std::mutex mutex_;  // private
+                            public:
+                                void addStudent(const&);    // validated
+                                bool removeStudent(const&);
+                                Student* findStudent(const&);
+                                void loadFromCsv(const&);
+                            };
+                        </code></pre>
+                    </div>
+                </div>
+                <ul style="font-size:0.55em;margin-top:8px;">
+                    <li><strong>Inheritance:</strong> Student is-a Person — inherits name_, adds course/grade</li>
+                    <li><strong>Encapsulation:</strong> All data private — addStudent() validates before storing, throws on bad data</li>
+                </ul>
+            </section>
+
+            <!-- SLIDE 4: POLYMORPHISM + ABCs -->
+            <section>
+                <h2>Polymorphism &amp; Abstract Base Classes</h2>
+                <p class="subtitle">3 ABCs, 7 pure virtuals, runtime vtable dispatch</p>
+                <div class="cols">
+                    <div class="col">
+                        <pre><code class="cpp" data-trim>
+                            class Certificate {              // Abstract base
+                            public:
+                                virtual std::string
+                                    generateHTML() const;    // Template Method
+                                virtual std::string
+                                    getTypeName() const = 0; // pure virtual
+                            };
+
+                            class CertOfExcellence : public Certificate {
+                                std::string getTypeName() const override
+                                    { return "Excellence"; }
+                            };
+
+                            class CertOfCompletion : public Certificate {
+                                std::string getTypeName() const override
+                                    { return "Completion"; }
+                            };
+                        </code></pre>
+                    </div>
+                    <div class="col">
+                        <ul style="font-size:0.55em;">
+                            <li><strong>3 ABCs:</strong> Person, CertificateTemplate, Certificate</li>
+                            <li><strong>7 pure virtual methods</strong> total</li>
+                            <li>Runtime dispatch via vtable</li>
+                            <li>Client code works with base pointers</li>
+                        </ul>
+                        <pre style="margin-top:10px;"><code class="cpp" data-trim>
+                            // Factory returns subclass at runtime
+                            auto tmpl = makeTemplate(style);
+                            auto cert = makeCertificate(
+                                type, s, std::move(tmpl));
+                            file &lt;&lt; cert->generateHTML();   // polymorphic!
+                        </code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 5: STRATEGY + TEMPLATE METHOD -->
+            <section>
+                <h2>Strategy + Template Method</h2>
+                <p class="subtitle">Strategy: swappable visual styles &middot; Template Method: fixed skeleton</p>
+                <div class="cols">
+                    <div class="col">
+                        <pre><code class="cpp" data-trim>
+                            // STRATEGY: CertificateTemplate
+                            class CertificateTemplate {
+                            public:
+                                virtual string header(...) const = 0;
+                                virtual string styles() const = 0;
+                                virtual string body(...) const = 0;
+                            };
+                            class FormalTemplate : public CertTempl {
+                                // Double border, serif (Georgia)
+                            };
+                            class ModernTemplate : public CertTempl {
+                                // Gradient bg, rounded corners
+                            };
+                            class MinimalistTemplate : public CertTempl {
+                                // Monospace font, clean lines
+                            };
+                        </code></pre>
+                    </div>
+                    <div class="col">
+                        <pre><code class="cpp" data-trim>
+                            // TEMPLATE METHOD: generateHTML()
+                            string Certificate::generateHTML() const {
+                                string typeName = getTypeName(); // virtual
+                                string html;
+                                html += template_.header(typeName);
+                                html += template_.styles();
+                                html += template_.body(student_,
+                                                       typeName, date);
+                                html += "&lt;/body&gt;&lt;/html&gt;";
+                                return html;
+                            }
+                            // Subclass provides type name/desc
+                            // Template provides all HTML/CSS
+                        </code></pre>
+                    </div>
+                </div>
+                <ul style="font-size:0.55em;margin-top:6px;">
+                    <li><strong>Strategy:</strong> Open/Closed — new templates don't change Certificate | Style chosen at runtime</li>
+                    <li><strong>Template Method:</strong> getTypeName() dispatches polymorphically | Zero duplication across types</li>
+                </ul>
+            </section>
+
+            <!-- SLIDE 6: FACTORY + COMPOSITION -->
+            <section>
+                <h2>Factory + Composition</h2>
+                <p class="subtitle">makeTemplate/makeCertificate &middot; has-a relationships throughout</p>
+                <div class="cols">
+                    <div class="col">
+                        <pre><code class="cpp" data-trim>
+                            // Factory: returns correct subclass
+                            unique_ptr&lt;CertificateTemplate&gt;
+                            makeTemplate(TemplateStyle style) {
+                                switch (style) {
+                                case Formal:
+                                    return mk&lt;FormalTemplate&gt;();
+                                case Modern:
+                                    return mk&lt;ModernTemplate&gt;();
+                                case Minimalist:
+                                    return mk&lt;MinimalistTemplate&gt;();
+                                }
+                            }
+                        </code></pre>
+                        <pre><code class="cpp" data-trim>
+                            // Composition: has-a
+                            class Certificate {
+                                const Student& student_;
+                                unique_ptr&lt;CertificateTemplate&gt;
+                                    template_; // has-a Template
+                            };
+                        </code></pre>
+                    </div>
+                    <div class="col">
+                        <ul style="font-size:0.5em;">
+                            <li><strong>Factory:</strong> Specify an enum → get right polymorphic type</li>
+                            <li>No conditional logic at call site</li>
+                            <li>Add type: enum value + case + class</li>
+                            <li><strong>Composition:</strong> has-a beats is-a</li>
+                            <li>Runtime flexibility (swap template)</li>
+                            <li>Looser coupling, easier testing</li>
+                            <li>HttpServer has-a Generator</li>
+                            <li>Generator has-a map of Students</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 7: RAII + STL -->
+            <section>
+                <h2>RAII &amp; STL Features</h2>
+                <p class="subtitle">Automatic resource management &middot; std::map, sort, find_if, lambdas, thread</p>
+                <div class="cols">
+                    <div class="col">
+                        <pre><code class="cpp" data-trim>
+                            // RAII: no manual cleanup
+                            void addStudent(const Student& s) {
+                                std::lock_guard&lt;mutex&gt; lock(m_);
+                                students_[toLower(s.getName())] = s;
+                                // auto-unlocked at scope exit
+                            }
+
+                            // unique_ptr: auto-deleted polymorphic
+                            auto cert = makeCertificate(type, s, t);
+                            // cert + tmpl auto-deleted when done
+                        </code></pre>
+                    </div>
+                    <div class="col">
+                        <pre><code class="cpp" data-trim>
+                            // STL: case-insensitive search
+                            Student* findStudent(const string& n) {
+                                auto it = find_if(begin(students_),
+                                    end(students_),
+                                    [&](const auto& p) {
+                                        return toLower(p.first)
+                                               == toLower(n);
+                                    });
+                                return it != end(students_)
+                                       ? &it->second : nullptr;
+                            }
+                        </code></pre>
+                    </div>
+                </div>
+                <ul style="font-size:0.5em;margin-top:6px;">
+                    <li><strong>RAII:</strong> unique_ptr, lock_guard, ofstream — zero manual delete/unlock/close</li>
+                    <li><strong>STL:</strong> std::map (O(log n)), find_if+lambda, sort+lambda, thread, mutex, stringstream</li>
+                </ul>
+            </section>
+
+            <!-- SLIDE 8: HTTP SERVER -->
+            <section>
+                <h2>HTTP Server &amp; REST API</h2>
+                <p class="subtitle">Winsock TCP &middot; 12 endpoints &middot; Embedded SPA &middot; Thread safety</p>
+                <div class="cols">
+                    <div class="col">
+                        <pre><code class="cpp" data-trim>
+                            // Accept loop: each conn on its own thread
+                            while (true) {
+                                SOCKET client = accept(server,
+                                    nullptr, nullptr);
+                                if (client == INVALID_SOCKET) break;
+                                std::thread(handleClient, client,
+                                    std::ref(gen)).detach();
+                            }
+                        </code></pre>
+                        <ul style="font-size:0.45em;margin-top:6px;">
+                            <li>All HTML/CSS/JS in C++ raw string literal</li>
+                            <li>Frontend uses fetch() — no reloads</li>
+                            <li>Theme toggle: Light/Dark/System</li>
+                        </ul>
+                    </div>
+                    <div class="col">
+                        <table style="font-size:0.4em;width:100%;border-collapse:collapse;">
+                            <tr style="border-bottom:1px solid #3a3532;"><th style="padding:4px 8px;color:#6a6a65;">Method</th><th style="padding:4px 8px;color:#6a6a65;">Path</th><th style="padding:4px 8px;color:#6a6a65;">Action</th></tr>
+                            <tr><td style="padding:3px 8px;">GET</td><td style="padding:3px 8px;">/</td><td>Serve Web UI</td></tr>
+                            <tr><td style="padding:3px 8px;">GET</td><td style="padding:3px 8px;">/list</td><td>All students JSON</td></tr>
+                            <tr><td style="padding:3px 8px;">GET</td><td style="padding:3px 8px;">/stats</td><td>Statistics JSON</td></tr>
+                            <tr><td style="padding:3px 8px;">POST</td><td style="padding:3px 8px;">/add</td><td>Insert student</td></tr>
+                            <tr><td style="padding:3px 8px;">POST</td><td style="padding:3px 8px;">/remove</td><td>Delete student</td></tr>
+                            <tr><td style="padding:3px 8px;">POST</td><td style="padding:3px 8px;">/load</td><td>CSV import</td></tr>
+                            <tr><td style="padding:3px 8px;">POST</td><td style="padding:3px 8px;">/generate</td><td>Create certificates</td></tr>
+                            <tr><td style="padding:3px 8px;">POST</td><td style="padding:3px 8px;">/sort</td><td>Sort students</td></tr>
+                        </table>
+                        <ul style="font-size:0.45em;margin-top:6px;">
+                            <li>std::mutex guards map (thread-safe)</li>
+                            <li>ValidationException → JSON error</li>
+                            <li>CSV: invalid lines skipped</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 9: WEB UI PREVIEW -->
+<section>
+  <h2>Web UI Preview</h2>
+  <p class="subtitle">Browser-based interface — Dashboard, Students, Generate, Statistics tabs</p>
+  <div class="cols" style="align-items:start;">
+    <div class="col" style="flex:1.5;">
+      <img src="preview.png" class="preview-img" alt="Web UI Screenshot">
+    </div>
+    <div class="col" style="flex:1;">
+      <ul style="font-size:0.5em;">
+        <li><strong>Dashboard:</strong> Total students, avg GPA, cert count, active courses</li>
+        <li><strong>Students:</strong> Search, sort, add, remove — grade badges with colors</li>
+        <li><strong>Generate:</strong> Pick type + template style — one student or all</li>
+        <li><strong>Statistics:</strong> Course distribution, grade distribution</li>
+        <li><strong>Theme toggle:</strong> Light / Dark / Match System</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+            <!-- SLIDE 10: ALL CONCEPTS IN ACTION -->
+            <section>
+                <h2>All Concepts in Action</h2>
+                <p class="subtitle">End-to-end: add student → generate certificate → HTML output</p>
+                <div class="cols">
+                    <div class="col">
+                        <pre><code class="cpp" data-trim>
+                            // 1. Add (encapsulation + exception)
+                            try {
+                                gen.addStudent(
+                                    Student("Alice","CSC 226","A"));
+                            } catch (const ValidationE& e) {
+                                cerr << e.what();
+                            }
+
+                            // 2. Create Template (factory + strategy)
+                            auto tmpl = makeTemplate(Formal);
+
+                            // 3. Create Certificate (factory + poly.)
+                            auto cert = makeCertificate(
+                                Excellence, student, move(tmpl));
+                        </code></pre>
+                    </div>
+                    <div class="col">
+                        <pre><code class="cpp" data-trim>
+                            // 4. Generate HTML (template method)
+                            string html = cert->generateHTML();
+                            //   getTypeName() → "Excellence"
+                            //   FormalTemplate::header() + styles()
+                            //   FormalTemplate::body()
+
+                            // 5. Write file (RAII: ofstream)
+                            ofstream file("output/Alice.html");
+                            file << html;  // auto-closed
+
+                            // 6. Serve via HTTP (thread + mutex)
+                            // Browser GET /list returns JSON
+                        </code></pre>
+                    </div>
+                </div>
+                <div class="concept-grid" style="margin-top:10px;">
+                    <div class="concept-card"><h4>Inheritance</h4><p>Student : Person</p></div>
+                    <div class="concept-card"><h4>Polymorphism</h4><p>cert->generateHTML()</p></div>
+                    <div class="concept-card"><h4>Encapsulation</h4><p>private + getters</p></div>
+                    <div class="concept-card"><h4>Abstract Base</h4><p>3 ABCs, 7 virtuals</p></div>
+                    <div class="concept-card"><h4>Strategy</h4><p>FormalTemplate CSS</p></div>
+                    <div class="concept-card"><h4>Template Method</h4><p>generateHTML()</p></div>
+                    <div class="concept-card"><h4>Factory</h4><p>makeTemplate/Cert</p></div>
+                    <div class="concept-card"><h4>Composition</h4><p>has-a Template</p></div>
+                    <div class="concept-card"><h4>RAII</h4><p>unique_ptr/lock</p></div>
+                    <div class="concept-card"><h4>STL</h4><p>map/sort/thread</p></div>
+                    <div class="concept-card"><h4>Exception</h4><p>try/catch validate</p></div>
+                    <div class="concept-card"><h4>Thread Safety</h4><p>mutex guard</p></div>
+                </div>
+            </section>
+
+            <!-- SLIDE 11: THANK YOU -->
+            <section>
+                <h1 style="color:#d97757;font-size:3em;">Thank You</h1>
+                <p style="font-size:1em;color:#b0aea5;">Questions &amp; Discussion</p>
+                <br />
+                <p style="font-size:0.55em;color:#6a6a65;">
+                    Lagos State University &mdash; Department of Computer Science &mdash; CSC 226 &mdash; Group 6
+                </p>
+                <p style="font-size:0.55em;color:#6a6a65;">July 2026</p>
+                <br />
+                <pre style="width:auto;display:inline-block;text-align:center; background:#2a2522; border-radius:8px;"><code class="bash" style="text-align:center; color:#faf9f5;">g++ -std=c++17 -I include main.cpp src/*.cpp -lws2_32  &amp;&amp;  ./certificate_generator</code></pre>
+            </section>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+    <script>
+        Reveal.initialize({
+            controls: true,
+            progress: true,
+            hash: true,
+            center: false,
+            plugins: [RevealHighlight],
+            width: 1200,
+            height: 700,
+            transition: 'slide',
+            backgroundTransition: 'fade'
+        });
+    </script>
+</body>
+</html>
