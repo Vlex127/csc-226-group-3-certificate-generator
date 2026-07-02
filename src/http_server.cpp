@@ -10,6 +10,7 @@
 #include <cctype>
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <map>
 #include <sstream>
@@ -67,6 +68,13 @@ static std::string jsonEscape(const std::string& s) {
         else                out += c;
     }
     return out;
+}
+
+// Locale-safe double to string for JSON (avoids comma decimal separator on some Windows locales)
+static std::string jsonDouble(double val, int precision = 2) {
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(precision) << val;
+    return oss.str();
 }
 
 // ── Embedded Web UI ──────────────────────────────────────────────────────
@@ -470,7 +478,9 @@ async function refreshTable() {
   tb.innerHTML = '<tr><td colspan=5 class=loading><div class=spinner></div></td></tr>';
   try {
     const r = await fetch(API + "/list");
-    const d = await r.json();
+    const txt = await r.text();
+    let d;
+    try { d = JSON.parse(txt); } catch(pe) { console.error("[/list] JSON parse failed:", pe.message, "raw:", txt.substring(0,200)); d = {status:"error"}; }
     if (d.status === "ok" && d.data.length > 0) {
       document.getElementById("student-count").textContent =
         d.data.length + " student" + (d.data.length !== 1 ? "s" : "");
@@ -505,19 +515,22 @@ async function addStudent() {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: "name=" + encodeURIComponent(n) + "&course=" + encodeURIComponent(c) + "&grade=" + encodeURIComponent(g)
     });
-    const d = await r.json();
-    if (d.status === "ok") {
+    const txt = await r.text();
+    console.log("[/add] status=" + r.status + " body=" + txt);
+    let d = {};
+    try { d = JSON.parse(txt); } catch(pe) { console.error("JSON parse failed:", pe.message, "raw:", txt); }
+    if (r.ok) {
       showMsg("Added " + n, "success");
       document.getElementById("student-name").value = "";
       document.getElementById("student-course").value = "";
       document.getElementById("student-grade").value = "";
-      refreshTable();
-      loadDashboard();
+      await refreshTable();
+      await loadDashboard();
     } else {
-      showMsg(d.message || "Error adding student", "error");
+      showMsg(d.message || "Error adding student (HTTP " + r.status + ")", "error");
     }
   } catch (e) {
-    showMsg("Error adding student", "error");
+    showMsg("Error adding student: " + e.message, "error");
   }
 }
 
@@ -530,7 +543,7 @@ async function removeStudent(n) {
       body: "name=" + encodeURIComponent(n)
     });
     const d = await r.json();
-    if (d.status === "ok") {
+    if (r.ok && d.status === "ok") {
       showMsg("Removed " + n, "success");
       refreshTable();
       loadDashboard();
@@ -766,7 +779,7 @@ static void handleClient(SOCKET client, CertificateGenerator& gen) {
     char buf[4096];
     int received;
 
-    // Read request until headers end (\r\n\r\n)
+    // Read headers until \r\n\r\n
     do {
         received = recv(client, buf, sizeof(buf) - 1, 0);
         if (received > 0) {
@@ -776,9 +789,33 @@ static void handleClient(SOCKET client, CertificateGenerator& gen) {
         }
     } while (received > 0 && request.find("\r\n\r\n") == std::string::npos);
 
+    // For POST/PUT/PATCH: read the full body based on Content-Length
+    auto headerEnd = request.find("\r\n\r\n");
+    if (headerEnd != std::string::npos) {
+        std::string headers = request.substr(0, headerEnd);
+        size_t bodyAlready = request.size() - headerEnd - 4;
+        size_t contentLength = 0;
+        try {
+            auto clPos = headers.find("Content-Length:");
+            if (clPos == std::string::npos) clPos = headers.find("content-length:");
+            if (clPos != std::string::npos) {
+                contentLength = std::stoul(headers.substr(clPos + 15));
+            }
+        } catch (...) {}
+        while (bodyAlready < contentLength && received > 0) {
+            received = recv(client, buf, sizeof(buf) - 1, 0);
+            if (received > 0) {
+                if (request.size() + received > MAX_REQUEST_SIZE) { closesocket(client); return; }
+                buf[received] = 0;
+                request += buf;
+                bodyAlready += received;
+            }
+        }
+    }
+
     // Lambda to send a complete HTTP response
     auto sendResponse = [&](int status, const std::string& ct, const std::string& body) {
-        std::string statusText = (status == 200) ? "OK" : (status == 404) ? "Not Found" : "Error";
+        std::string statusText = (status == 200) ? "OK" : (status == 400) ? "Bad Request" : (status == 404) ? "Not Found" : "Error";
         std::ostringstream res;
         res << "HTTP/1.1 " << status << " " << statusText << "\r\n"
             << "Content-Type: " << ct << "\r\n"
@@ -787,7 +824,14 @@ static void handleClient(SOCKET client, CertificateGenerator& gen) {
             << "Connection: close\r\n"
             << "\r\n"
             << body;
-        send(client, res.str().data(), static_cast<int>(res.str().size()), 0);
+        std::string data = res.str();
+        int total = static_cast<int>(data.size());
+        int sent = 0;
+        while (sent < total) {
+            int n = send(client, data.data() + sent, total - sent, 0);
+            if (n <= 0) break;
+            sent += n;
+        }
     };
 
     auto sendJSON = [&](int status, const std::string& json) {
@@ -806,6 +850,7 @@ static void handleClient(SOCKET client, CertificateGenerator& gen) {
     if (bodyPos != std::string::npos && bodyPos + 4 < request.size()) {
         body = request.substr(bodyPos + 4);
     }
+    std::cerr << "[REQ] " << method << " " << path << " body_len=" << body.size() << std::endl;
 
     // ── Route Dispatch ───────────────────────────────────────────────
     try {
@@ -822,7 +867,7 @@ static void handleClient(SOCKET client, CertificateGenerator& gen) {
                 json += R"({"name":")" + jsonEscape(students[i].getName()) + "\",";
                 json += R"("course":")" + jsonEscape(students[i].getCourse()) + "\",";
                 json += R"("grade":")" + jsonEscape(students[i].getGrade()) + "\",";
-                json += R"("gpa":)" + std::to_string(students[i].gradeToPoints()) + "}";
+                json += R"("gpa":)" + jsonDouble(students[i].gradeToPoints()) + "}";
             }
             json += "]}";
             sendJSON(200, json);
@@ -855,7 +900,7 @@ static void handleClient(SOCKET client, CertificateGenerator& gen) {
                 json += R"({"name":")" + jsonEscape(results[i].getName()) + "\",";
                 json += R"("course":")" + jsonEscape(results[i].getCourse()) + "\",";
                 json += R"("grade":")" + jsonEscape(results[i].getGrade()) + "\",";
-                json += R"("gpa":)" + std::to_string(results[i].gradeToPoints()) + "}";
+                json += R"("gpa":)" + jsonDouble(results[i].gradeToPoints()) + "}";
             }
             json += "]}";
             sendJSON(200, json);
@@ -865,7 +910,7 @@ static void handleClient(SOCKET client, CertificateGenerator& gen) {
             auto stats = gen.computeStats();
             std::string json = std::string(R"({"status":"ok","data":{)")
                 + R"("total":)" + std::to_string(stats.total) + ","
-                + R"("avgGpa":)" + std::to_string(stats.avgGradePoints) + ","
+                + R"("avgGpa":)" + jsonDouble(stats.avgGradePoints) + ","
                 + R"("courses":{)";
             bool first = true;
             for (const auto& [c, n] : stats.courseCounts) {
@@ -924,9 +969,18 @@ static void handleClient(SOCKET client, CertificateGenerator& gen) {
         // POST /add — add a student from form fields
         else if (method == "POST" && path == "/add") {
             auto fields = parseForm(body);
-            Student s(fields["name"], fields["course"], fields["grade"]);
-            gen.addStudent(s);
-            sendJSON(200, R"({"status":"ok","message":"Added ")" + jsonEscape(fields["name"]) + "\"}");
+            std::cerr << "[ADD] name=\"" << fields["name"]
+                      << "\" course=\"" << fields["course"]
+                      << "\" grade=\"" << fields["grade"]
+                      << "\" body=\"" << body << "\"" << std::endl;
+            try {
+                Student s(fields["name"], fields["course"], fields["grade"]);
+                gen.addStudent(s);
+                sendJSON(200, R"({"status":"ok","message":"Added ")" + jsonEscape(fields["name"]) + "\"}");
+            } catch (const std::exception& e) {
+                std::cerr << "[ADD] ERROR: " << e.what() << std::endl;
+                sendJSON(400, R"({"status":"error","message":")" + jsonEscape(e.what()) + "\"}");
+            }
         }
         // POST /remove — remove a student by name
         else if (method == "POST" && path == "/remove") {
@@ -934,7 +988,7 @@ static void handleClient(SOCKET client, CertificateGenerator& gen) {
             if (gen.removeStudent(fields["name"])) {
                 sendJSON(200, R"({"status":"ok","message":"Removed"})");
             } else {
-                sendJSON(200, R"({"status":"error","message":"Student not found"})");
+                sendJSON(404, R"({"status":"error","message":"Student not found"})");
             }
         }
         // POST /load — batch load from CSV file
@@ -944,7 +998,7 @@ static void handleClient(SOCKET client, CertificateGenerator& gen) {
                 gen.loadFromCsv(fields["filename"]);
                 sendJSON(200, R"({"status":"ok","message":"Loaded from )" + jsonEscape(fields["filename"]) + "\"}");
             } catch (const FileException& e) {
-                sendJSON(200, R"({"status":"error","message":")" + jsonEscape(e.what()) + "\"}");
+                sendJSON(400, R"({"status":"error","message":")" + jsonEscape(e.what()) + "\"}");
             }
         }
         // POST /loadcontent — load CSV from uploaded content (file picker or paste)
@@ -961,10 +1015,10 @@ static void handleClient(SOCKET client, CertificateGenerator& gen) {
                     sendJSON(200, R"({"status":"ok","message":"CSV loaded from upload"})");
                 } catch (const std::exception& e) {
                     std::remove(csvPath.c_str());
-                    sendJSON(200, R"({"status":"error","message":")" + jsonEscape(e.what()) + "\"}");
+                    sendJSON(400, R"({"status":"error","message":")" + jsonEscape(e.what()) + "\"}");
                 }
             } else {
-                sendJSON(200, R"({"status":"error","message":"No CSV content provided"})");
+                sendJSON(400, R"({"status":"error","message":"No CSV content provided"})");
             }
         }
         // POST /generate — generate certificate(s) with specified type and style
@@ -1024,7 +1078,7 @@ static void handleClient(SOCKET client, CertificateGenerator& gen) {
     }
     catch (const ValidationException& e) {
         std::string json = R"({"status":"error","message":")" + jsonEscape(e.what()) + "\"}";
-        sendJSON(200, json);
+        sendJSON(400, json);
     }
     catch (const std::exception& e) {
         std::string json = R"({"status":"error","message":"Server error: )" + jsonEscape(e.what()) + "\"}";

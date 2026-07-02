@@ -10,7 +10,7 @@ A production-grade C++ web application for generating, managing, and printing st
 | **Group** | 6 — 20 Members |
 | **Tech** | C++17, Winsock2 (custom HTTP server), Embedded HTML/CSS/JS |
 | **Patterns** | Strategy, Template Method, Factory, Inheritance, Polymorphism, RAII |
-| **Build** | `g++ -std=c++17 -I include main.cpp src/*.cpp -lws2_32` |
+| **Build** | `g++ -std=c++17 -I include -o certificate_generator.exe main.cpp src/*.cpp -lws2_32`   |
 | **Port** | `localhost:8080` |
 | **Usage Guide** | [lasu-csc226-group6.vercel.app](https://lasu-csc226-group6.vercel.app) |
 
