@@ -36,7 +36,7 @@ public:
     void setCourse(const std::string& course);
     void setGrade(const std::string& grade);
 
-    // Converts letter grade (A, B+, etc.) or numeric grade (0-100) to GPA points
+    // Converts letter grade (A, B, etc.) or numeric score (0–100) to 5.0 CGPA points
     double gradeToPoints() const;
 
     // Static — validates grade format before storing

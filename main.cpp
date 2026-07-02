@@ -35,8 +35,17 @@
 
 #include "http_server.hpp"
 #include <iostream>
+#include <string>
 
-int main() {
+int main(int argc, char* argv[]) {
+    bool verbose = false;
+    for (int i = 1; i < argc; i++) {
+        std::string arg = argv[i];
+        if (arg == "--verbose" || arg == "-v") {
+            verbose = true;
+        }
+    }
+
     CertificateGenerator gen;
 
     std::cout << "  ========================================\n";
@@ -46,7 +55,11 @@ int main() {
     std::cout << "   CSC 226 - Group 6\n";
     std::cout << "  ========================================\n\n";
 
-    HttpServer server(gen, 8080);
+    if (verbose) {
+        std::cout << "   Verbose logging enabled.\n\n";
+    }
+
+    HttpServer server(gen, 8080, verbose);
     server.start();
 
     return 0;

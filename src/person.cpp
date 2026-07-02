@@ -3,13 +3,21 @@
 #include <cctype>
 #include <map>
 
-// ─── Static Grade Table (avoids duplication between isValidGrade and gradeToPoints) ───
+// ─── LASU 5.0 CGPA Grading Scale ────────────────────────────────────────────
+// A = 5  (70–100%)  First Class Honours
+// B = 4  (60–69.9%) Second Class Upper
+// C = 3  (50–59.9%) Second Class Lower
+// D = 2  (45–49.9%) Third Class Honours
+// E = 1  (40–44.9%) Pass
+// F = 0  (0–39.9%)  Fail
+// ─────────────────────────────────────────────────────────────────────────────
 static const std::map<std::string, double> GRADE_POINTS = {
-    {"A+", 4.0}, {"A", 4.0}, {"A-", 3.7},
-    {"B+", 3.3}, {"B", 3.0}, {"B-", 2.7},
-    {"C+", 2.3}, {"C", 2.0}, {"C-", 1.7},
-    {"D+", 1.3}, {"D", 1.0}, {"D-", 0.7},
-    {"F",  0.0}
+    {"A", 5.0},
+    {"B", 4.0},
+    {"C", 3.0},
+    {"D", 2.0},
+    {"E", 1.0},
+    {"F", 0.0}
 };
 
 // ─── Person ─────────────────────────────────────────────────────────────────
@@ -32,7 +40,7 @@ std::string Student::getGrade() const { return grade_; }
 void Student::setCourse(const std::string& course) { course_ = course; }
 void Student::setGrade(const std::string& grade) { grade_ = grade; }
 
-// Validates grade as either a letter (A, B+, etc.) or a number 0-100
+// Validates grade as a LASU letter grade (A–F) or a numeric score (0–100)
 bool Student::isValidGrade(const std::string& grade) {
     if (grade.empty()) return false;
 
@@ -48,16 +56,21 @@ bool Student::isValidGrade(const std::string& grade) {
     }
 }
 
-// Converts letter/numeric grade to 4.0 GPA scale for stats and sorting
+// Converts LASU letter grade or numeric score (0–100) to 5.0 CGPA scale
 double Student::gradeToPoints() const {
     // Look up in static map
     auto it = GRADE_POINTS.find(grade_);
     if (it != GRADE_POINTS.end()) return it->second;
 
-    // If not a letter grade, parse as number (e.g. "85") and scale to GPA
+    // Numeric score → 5.0 CGPA scale
     try {
-        double num = std::stod(grade_);
-        return num / 25.0;  // 100 -> 4.0 scale
+        double score = std::stod(grade_);
+        if      (score >= 70.0) return 5.0;  // A
+        else if (score >= 60.0) return 4.0;  // B
+        else if (score >= 50.0) return 3.0;  // C
+        else if (score >= 45.0) return 2.0;  // D
+        else if (score >= 40.0) return 1.0;  // E
+        else                    return 0.0;  // F
     } catch (...) {
         return 0.0;
     }

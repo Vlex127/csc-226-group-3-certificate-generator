@@ -220,7 +220,7 @@ A: Go to the **Generate** tab — generated files are listed and clickable.
 A: Yes. Open the `.html` file in your browser and press Ctrl+P.
 
 **Q: What grade formats are accepted?**
-A: Letter grades (A, A+, A-, B+, B, B-, etc.) and numeric grades (0-100).
+A: LASU letter grades (A, B, C, D, E, F) or numeric scores (0–100). Uses the 5.0 CGPA scale.
 
 **Q: How do I stop the server?**
 A: Press Ctrl+C in the terminal where the server is running.

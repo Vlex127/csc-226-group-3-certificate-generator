@@ -26,7 +26,7 @@ public:
     // ── Search ──
     std::vector<Student> searchByName(const std::string& partial) const;
     std::vector<Student> searchByCourse(const std::string& course) const;
-    // Grade range is in GPA points (0.0–4.0)
+    // Grade range is in CGPA points (0.0–5.0)
     std::vector<Student> searchByGradeRange(double min, double max) const;
 
     // ── Utility ──
@@ -42,7 +42,7 @@ public:
     Student inputSingleStudent();
 
     // ── Certificate Generation (delegates to Certificate + Template) ──
-    void generateCertificateFor(const std::string& name, CertType type, TemplateStyle style) const;
+    bool generateCertificateFor(const std::string& name, CertType type, TemplateStyle style) const;
     void generateAllCertificates(CertType type, TemplateStyle style) const;
 
     // ── Statistics ──

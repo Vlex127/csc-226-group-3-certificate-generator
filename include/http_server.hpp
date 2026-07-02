@@ -8,8 +8,9 @@
 class HttpServer {
     CertificateGenerator& gen_; // reference to shared data manager
     int port_;
+    bool verbose_; // when true, log every request to stderr
 public:
-    HttpServer(CertificateGenerator& gen, int port = 8080);
+    HttpServer(CertificateGenerator& gen, int port = 8080, bool verbose = false);
     // Blocks until the process is killed — accepts connections in a loop
     void start();
 };

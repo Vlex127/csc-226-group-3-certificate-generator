@@ -258,15 +258,13 @@ Student CertificateGenerator::inputSingleStudent() {
 
 // ─── Certificate Generation ──────────────────────────────────────────────────
 
-void CertificateGenerator::generateCertificateFor(
+bool CertificateGenerator::generateCertificateFor(
     const std::string& name, CertType type, TemplateStyle style) const
 {
     std::lock_guard<std::mutex> lock(mutex_);
     auto it = students_.find(toLower(name));
     if (it == students_.end()) {
-        std::cerr << "  Student \"" << name
-                  << "\" not found." << std::endl;
-        return;
+        return false;
     }
 
     const Student& s = it->second;
@@ -283,14 +281,13 @@ void CertificateGenerator::generateCertificateFor(
     std::ofstream file(filename);
 
     if (!file.is_open()) {
-        std::cerr << "  Could not create file "
-                  << filename << std::endl;
-        return;
+        return false;
     }
 
     file << cert->generateHTML();
     file.close();
     std::cout << "  Generated: " << filename << std::endl;
+    return true;
 }
 
 void CertificateGenerator::generateAllCertificates(
@@ -352,7 +349,7 @@ void CertificateGenerator::printStats() const {
 
     std::cout << "\n  ====== STATISTICS ======\n";
     std::cout << "  Total Students: " << stats.total << "\n";
-    std::cout << "  Average GPA:    " << std::fixed
+    std::cout << "  Average CGPA:  " << std::fixed
               << std::setprecision(2) << stats.avgGradePoints << "\n";
 
     std::cout << "\n  --- Per Course ---\n";

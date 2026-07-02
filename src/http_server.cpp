@@ -191,6 +191,8 @@ tr:hover td{background:var(--bg-tertiary)}
 .grade-a{background:var(--success-dim);color:var(--success)}
 .grade-b{background:var(--secondary-dim);color:var(--secondary)}
 .grade-c{background:var(--warning-dim);color:var(--warning)}
+.grade-d{background:rgba(180,130,60,0.15);color:#b4823c}
+.grade-e{background:rgba(160,100,50,0.15);color:#a06432}
 .grade-f{background:var(--error-dim);color:var(--error)}
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
 .stat-card{background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px}
@@ -274,7 +276,7 @@ tr:hover td{background:var(--bg-tertiary)}
     <div id="dashboard-tab" class="tab-content">
       <div class="stats-grid">
         <div class="stat-card"><div class="stat-label">Total Students</div><div class="stat-value" id="stat-total">0</div></div>
-        <div class="stat-card"><div class="stat-label">Average GPA</div><div class="stat-value accent" id="stat-gpa">0.00</div></div>
+        <div class="stat-card"><div class="stat-label">Average CGPA</div><div class="stat-value accent" id="stat-gpa">0.00</div></div>
         <div class="stat-card"><div class="stat-label">Certificates Generated</div><div class="stat-value success" id="stat-certs">0</div></div>
         <div class="stat-card"><div class="stat-label">Active Courses</div><div class="stat-value" id="stat-courses">0</div></div>
       </div>
@@ -325,7 +327,7 @@ tr:hover td{background:var(--bg-tertiary)}
           <span id="student-count" style="color:var(--text-muted);font-size:14px">0 students</span>
         </div>
         <div class="table-container">
-          <table><thead><tr><th>Name</th><th>Course</th><th>Grade</th><th>GPA</th><th>Actions</th></tr></thead>
+          <table><thead><tr><th>Name</th><th>Course</th><th>Grade</th><th>CGPA</th><th>Actions</th></tr></thead>
           <tbody id="students-table"><tr><td colspan="5" class="empty-state"><h3>No students yet</h3><p>Add students manually or import from CSV.</p></td></tr></tbody>
           </table>
         </div>
@@ -338,7 +340,7 @@ tr:hover td{background:var(--bg-tertiary)}
           Generate Certificate</h2>
         </div>
         <div class="form-grid">
-          <div class="form-group"><label>Student Name</label><input type="text" id="gen-name" placeholder="Leave empty to generate all"><small style="color:var(--text-muted);font-size:12px">Leave empty to generate for all students</small></div>
+          <div class="form-group"><label>Student Name</label><select id="gen-name"><option value="">All Students</option></select><small style="color:var(--text-muted);font-size:12px">Leave as "All Students" to generate for everyone</small></div>
           <div class="form-group"><label>Certificate Type</label><select id="gen-type"><option value="0">Certificate of Excellence</option><option value="1">Certificate of Completion</option><option value="2">Certificate of Participation</option></select></div>
           <div class="form-group"><label>Template Style</label><select id="gen-style"><option value="0">Formal</option><option value="1">Modern</option><option value="2">Minimalist</option></select></div>
         </div>
@@ -362,7 +364,7 @@ tr:hover td{background:var(--bg-tertiary)}
     <div id="stats-tab" class="tab-content hidden">
       <div class="stats-grid">
         <div class="stat-card"><div class="stat-label">Total Students</div><div class="stat-value" id="stats-total">0</div></div>
-        <div class="stat-card"><div class="stat-label">Average GPA</div><div class="stat-value accent" id="stats-gpa">0.00</div></div>
+        <div class="stat-card"><div class="stat-label">Average CGPA</div><div class="stat-value accent" id="stats-gpa">0.00</div></div>
       </div>
       <div class="card">
         <div class="card-header"><h2 class="card-title">
@@ -395,19 +397,24 @@ tr:hover td{background:var(--bg-tertiary)}
     </div>
     <div class="modal-body">
       <p>Your CSV file should have three columns: <strong>Name</strong>, <strong>Course</strong>, and <strong>Grade</strong>. An optional header row is allowed but not required.</p>
-      <p><strong>Accepted grade formats:</strong></p>
+      <p><strong>LASU Grading System (5.0 CGPA):</strong></p>
       <ul>
-        <li>Letter grades: <code>A</code>, <code>A+</code>, <code>A-</code>, <code>B+</code>, <code>B</code>, <code>B-</code>, <code>C+</code>, <code>C</code>, <code>C-</code>, <code>D+</code>, <code>D</code>, <code>D-</code>, <code>F</code></li>
-        <li>Numeric grades: <code>0</code> to <code>100</code></li>
+        <li><code>A</code> = 5.0 — First Class Honours (70–100%)</li>
+        <li><code>B</code> = 4.0 — Second Class Upper (60–69.9%)</li>
+        <li><code>C</code> = 3.0 — Second Class Lower (50–59.9%)</li>
+        <li><code>D</code> = 2.0 — Third Class Honours (45–49.9%)</li>
+        <li><code>E</code> = 1.0 — Pass (40–44.9%)</li>
+        <li><code>F</code> = 0.0 — Fail (0–39.9%)</li>
       </ul>
+      <p>You can also use numeric scores <code>0</code> to <code>100</code>.</p>
       <p><strong>Example:</strong></p>
       <pre>Name,Course,Grade
 Alice Johnson,CSC 226,A
-Bob Smith,CSC 226,B+
-Carol Williams,MATH 100,A-
-David Brown,MATH 100,B
-Eve Davis,CSC 226,A</pre>
-      <p style="color:var(--text-muted);font-size:13px">To import, click <strong>Browse CSV</strong> and select a <code>.csv</code> file from your computer. You can also paste CSV content directly into the textarea below.</p>
+Bob Smith,CSC 226,B
+Carol Williams,MATH 100,A
+David Brown,MATH 100,C
+Eve Davis,CSC 226,F</pre>
+      <p style="color:var(--text-muted);font-size:13px">To import, click <strong>Browse CSV</strong> and select a <code>.csv</code> file from your computer.</p>
     </div>
   </div>
 </div>
@@ -422,7 +429,7 @@ function switchTab(t) {
   if (t === "dashboard") loadDashboard();
   if (t === "students") refreshTable();
   if (t === "stats") loadStats();
-  if (t === "generate") loadCerts();
+  if (t === "generate") { loadStudentDropdown(); loadCerts(); }
 }
 
 document.querySelectorAll(".tab").forEach(
@@ -449,9 +456,11 @@ function showMsg(m, t) {
 
 function getGradeClass(g) {
   const x = g.charAt(0).toUpperCase();
-  if (["A"].includes(x)) return "grade-a";
-  if (["B"].includes(x)) return "grade-b";
-  if (["C", "D"].includes(x)) return "grade-c";
+  if (x === "A") return "grade-a";
+  if (x === "B") return "grade-b";
+  if (x === "C") return "grade-c";
+  if (x === "D") return "grade-d";
+  if (x === "E") return "grade-e";
   return "grade-f";
 }
 
@@ -597,19 +606,20 @@ async function generateCert() {
       body
     });
     const d = await r.json();
-    if (d.status === "ok") {
-      showMsg("Certificate generated!", "success");
+    if (r.ok && d.status === "ok") {
+      showMsg(d.message || "Certificate generated!", "success");
       loadCerts();
       loadDashboard();
     } else {
-      showMsg(d.message || "Error generating", "error");
+      showMsg(d.message || "Error generating certificate", "error");
     }
   } catch (e) {
-    showMsg("Error generating certificate", "error");
+    showMsg("Error generating certificate: " + e.message, "error");
   }
 }
 
 async function generateAllCerts() {
+  document.getElementById("gen-name").value = "";
   const t = document.getElementById("gen-type").value;
   const s = document.getElementById("gen-style").value;
   try {
@@ -619,21 +629,42 @@ async function generateAllCerts() {
       body: "certType=" + t + "&style=" + s
     });
     const d = await r.json();
-    if (d.status === "ok") {
-      showMsg("Certificates generated for all!", "success");
+    if (r.ok && d.status === "ok") {
+      showMsg(d.message || "Certificates generated for all!", "success");
       loadCerts();
       loadDashboard();
     } else {
-      showMsg(d.message || "Error", "error");
+      showMsg(d.message || "Error generating certificates", "error");
     }
   } catch (e) {
-    showMsg("Error", "error");
+    showMsg("Error generating certificates: " + e.message, "error");
   }
 }
 
+async function loadStudentDropdown() {
+  const sel = document.getElementById("gen-name");
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">All Students</option>';
+  try {
+    const r = await fetch(API + "/list");
+    const txt = await r.text();
+    let d;
+    try { d = JSON.parse(txt); } catch(e) { return; }
+    if (d.status === "ok" && d.data) {
+      d.data.forEach(s => {
+        const opt = document.createElement("option");
+        opt.value = s.name;
+        opt.textContent = s.name + " (" + s.grade + " — " + s.course + ")";
+        sel.appendChild(opt);
+      });
+    }
+  } catch(e) {}
+  if (prev) sel.value = prev;
+}
+
 function quickGen(n) {
-  document.getElementById("gen-name").value = n;
   switchTab("generate");
+  setTimeout(() => { document.getElementById("gen-name").value = n; }, 100);
 }
 
 async function loadCerts() {
@@ -766,15 +797,15 @@ loadDashboard();
 
 // ── HTTP Server Constructor ──────────────────────────────────────────────
 
-HttpServer::HttpServer(CertificateGenerator& gen, int port)
-    : gen_(gen), port_(port) {}
+HttpServer::HttpServer(CertificateGenerator& gen, int port, bool verbose)
+    : gen_(gen), port_(port), verbose_(verbose) {}
 
 // ── HTTP Request Handler ─────────────────────────────────────────────────
 // Called in a detached thread for each incoming connection.
 // Parses the raw HTTP request, dispatches to the correct route,
 // and sends back a JSON or HTML response.
 
-static void handleClient(SOCKET client, CertificateGenerator& gen) {
+static void handleClient(SOCKET client, CertificateGenerator& gen, bool verbose) {
     std::string request;
     char buf[4096];
     int received;
@@ -850,7 +881,7 @@ static void handleClient(SOCKET client, CertificateGenerator& gen) {
     if (bodyPos != std::string::npos && bodyPos + 4 < request.size()) {
         body = request.substr(bodyPos + 4);
     }
-    std::cerr << "[REQ] " << method << " " << path << " body_len=" << body.size() << std::endl;
+    if (verbose) std::cerr << "[REQ] " << method << " " << path << " body_len=" << body.size() << std::endl;
 
     // ── Route Dispatch ───────────────────────────────────────────────
     try {
@@ -969,7 +1000,7 @@ static void handleClient(SOCKET client, CertificateGenerator& gen) {
         // POST /add — add a student from form fields
         else if (method == "POST" && path == "/add") {
             auto fields = parseForm(body);
-            std::cerr << "[ADD] name=\"" << fields["name"]
+            if (verbose) std::cerr << "[ADD] name=\"" << fields["name"]
                       << "\" course=\"" << fields["course"]
                       << "\" grade=\"" << fields["grade"]
                       << "\" body=\"" << body << "\"" << std::endl;
@@ -978,7 +1009,7 @@ static void handleClient(SOCKET client, CertificateGenerator& gen) {
                 gen.addStudent(s);
                 sendJSON(200, R"({"status":"ok","message":"Added ")" + jsonEscape(fields["name"]) + "\"}");
             } catch (const std::exception& e) {
-                std::cerr << "[ADD] ERROR: " << e.what() << std::endl;
+                if (verbose) std::cerr << "[ADD] ERROR: " << e.what() << std::endl;
                 sendJSON(400, R"({"status":"error","message":")" + jsonEscape(e.what()) + "\"}");
             }
         }
@@ -1032,11 +1063,16 @@ static void handleClient(SOCKET client, CertificateGenerator& gen) {
             auto st = static_cast<TemplateStyle>(style);
 
             if (fields.count("name") && !fields["name"].empty()) {
-                gen.generateCertificateFor(fields["name"], ct, st);
+                bool ok = gen.generateCertificateFor(fields["name"], ct, st);
+                if (ok) {
+                    sendJSON(200, R"({"status":"ok","message":"Certificate generated"})");
+                } else {
+                    sendJSON(404, R"({"status":"error","message":"Student ")" + jsonEscape(fields["name"]) + R"(" not found. Use the exact name from the Students tab."})");
+                }
             } else {
                 gen.generateAllCertificates(ct, st);
+                sendJSON(200, R"({"status":"ok","message":"Certificates generated for all students"})");
             }
-            sendJSON(200, R"({"status":"ok","message":"Certificates generated"})");
         }
         // POST /sort — sort the student list
         else if (method == "POST" && path == "/sort") {
@@ -1135,6 +1171,11 @@ void HttpServer::start() {
     std::cout << "   Server running at: " << url << "\n";
     std::cout << "   Opening in your browser...\n";
     std::cout << "  ========================================\n";
+    if (verbose_) {
+        std::cout << "   Verbose logging: ON\n";
+    } else {
+        std::cout << "   Logging: errors only  (--verbose for full logs)\n";
+    }
     std::cout << "   Press Ctrl+C to stop.\n\n" << std::flush;
 
     // Open the default browser to the server URL
@@ -1144,7 +1185,7 @@ void HttpServer::start() {
     while (true) {
         SOCKET client = accept(server, nullptr, nullptr);
         if (client == INVALID_SOCKET) break;
-        std::thread(handleClient, client, std::ref(gen_)).detach();
+        std::thread(handleClient, client, std::ref(gen_), verbose_).detach();
     }
 
     closesocket(server);
