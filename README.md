@@ -32,8 +32,8 @@ A production-grade C++ web application for generating, managing, and printing st
 |---|---|
 | **Dashboard** | Real-time stats: total students, average GPA, course count |
 | **Student Table** | Search, sort (name/grade/course), add/remove students |
-| **CSV Import** | Load from file path or paste CSV data directly |
-| **CSV File Browser** | Auto-lists all `.csv` files in working directory |
+| **CSV Import** | Load from CSV file using the file picker |
+| **CSV File Browser** | Lists all `.csv` files in working directory (`GET /listcsv`) |
 | **Manual Entry** | Add individual students with input validation |
 
 ### Web UI Tabs
@@ -128,9 +128,8 @@ The server starts on **http://localhost:8080** and opens in your browser automat
 
 ### Load Sample Data
 1. Go to the **Students** tab
-2. Click **Import from CSV**
-3. Type `students.csv` and click OK
-4. Switch to **Dashboard** to see stats
+2. Click **Import from CSV** → **Browse CSV** and select `students.csv`
+3. Switch to **Dashboard** to see stats
 
 ### Generate Certificates
 1. Go to the **Generate** tab
@@ -164,16 +163,18 @@ The server starts on **http://localhost:8080** and opens in your browser automat
 
 ## Screenshots
 
-*[Screenshots to be added after running the application]*
+Screenshots are in the `assets/` folder and embedded in the usage guide at [lasu-csc226-group6.vercel.app](https://lasu-csc226-group6.vercel.app).
 
-| Feature | Preview |
+| File | Description |
 |---|---|
-| Dashboard | Placeholder |
-| Students Tab | Placeholder |
-| Certificate Generation | Placeholder |
-| Statistics View | Placeholder |
-
-See  the usage guide (`lasu-csc226-group6.vercel.app`) for instructions on capturing screenshots from the running server.
+| `assets/dashboard.png` | Dashboard tab with stats cards |
+| `assets/students.png` | Student table with search |
+| `assets/generate.png` | Certificate generation form |
+| `assets/stats.png` | Statistics with grade distribution |
+| `assets/cert-formal.png` | Formal certificate preview |
+| `assets/cert-modern.png` | Modern certificate preview |
+| `assets/cert-minimal.png` | Minimalist certificate preview |
+| `assets/csv-import.png` | CSV import dialog |
 
 ---
 
@@ -210,7 +211,7 @@ See  the usage guide (`lasu-csc226-group6.vercel.app`) for instructions on captu
 A: Yes. Enter the full path, e.g. `C:\Users\Name\Desktop\students.csv`.
 
 **Q: Can I paste CSV data without a file?**
-A: Yes. Use the CSV Import tab and paste your data directly into the textarea.
+A: Yes. Click **Import from CSV** and select a `.csv` file using the file picker.
 
 **Q: How do I view generated certificates?**
 A: Go to the **Generate** tab — generated files are listed and clickable.

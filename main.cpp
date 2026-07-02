@@ -43,7 +43,7 @@ int main() {
     std::cout << "   LASU Certificate Generator v2.0\n";
     std::cout << "   Lagos State University\n";
     std::cout << "   Department of Computer Science\n";
-    std::cout << "   CSC 226 — Group 6\n";
+    std::cout << "   CSC 226 - Group 6\n";
     std::cout << "  ========================================\n\n";
 
     HttpServer server(gen, 8080);

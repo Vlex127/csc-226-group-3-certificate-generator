@@ -712,25 +712,23 @@ while (true) {
                  Inches(0.8), Inches(1.2), Inches(11), Inches(0.5),
                  font_size=18, color=Colors.SUBTEXT, italic=True)
     
-    # Image placeholder
-    img_placeholder = slide.shapes.add_shape(
-        MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.8), Inches(1.8),
-        Inches(7.5), Inches(4.5)
-    )
-    img_placeholder.fill.solid()
-    img_placeholder.fill.fore_color.rgb = Colors.CARD_BG
-    img_placeholder.line.color.rgb = Colors.BORDER
-    img_placeholder.line.width = Pt(2)
-    
-    # Add placeholder text
-    add_text_box(slide, "📸 [SCREENSHOT PLACEHOLDER]",
-                 Inches(0.8), Inches(3.5),
-                 Inches(7.5), Inches(0.6),
-                 font_size=24, color=Colors.MUTED, align=PP_ALIGN.CENTER)
-    add_text_box(slide, "Web UI Screenshot",
-                 Inches(0.8), Inches(4.2),
-                 Inches(7.5), Inches(0.4),
-                 font_size=14, color=Colors.SUBTEXT, align=PP_ALIGN.CENTER)
+    # Web UI screenshot
+    img_path = "assets/preview.png"
+    if os.path.exists(img_path):
+        slide.shapes.add_picture(img_path, Inches(0.8), Inches(1.8), Inches(7.5), Inches(4.5))
+    else:
+        img_placeholder = slide.shapes.add_shape(
+            MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.8), Inches(1.8),
+            Inches(7.5), Inches(4.5)
+        )
+        img_placeholder.fill.solid()
+        img_placeholder.fill.fore_color.rgb = Colors.CARD_BG
+        img_placeholder.line.color.rgb = Colors.BORDER
+        img_placeholder.line.width = Pt(2)
+        add_text_box(slide, "[Screenshot: assets/preview.png]",
+                     Inches(0.8), Inches(3.5),
+                     Inches(7.5), Inches(0.6),
+                     font_size=18, color=Colors.MUTED, align=PP_ALIGN.CENTER)
     
     # Features list
     features = [
